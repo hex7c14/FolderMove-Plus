@@ -28,6 +28,12 @@ pub enum AppError {
     Other(String),
 }
 
+impl From<String> for AppError {
+    fn from(s: String) -> Self {
+        AppError::Other(s)
+    }
+}
+
 pub type AppResult<T> = Result<T, AppError>;
 
 impl From<AppError> for String {

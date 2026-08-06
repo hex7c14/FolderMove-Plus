@@ -18,11 +18,54 @@ fn emit(app: &AppHandle, id: &str, phase: &str, current: u64, total: u64, msg: i
     );
 }
 
+/// 规范化 Windows 绝对路径：
+/// - 去掉首尾空白
+/// - 统一使用反斜杠分隔
+/// - 合并连续分隔符
+/// - **关键修复**：盘符根 "D:" 恢复为 "D:\\"（否则 PathBuf::join 会按相对路径处理，导致 D:Foo 这种错误）
+fn normalize_absolute_path(s: &str) -> AppResult<String> {
+    let trimmed = s.trim();
+    if trimmed.is_empty() {
+        return Err(AppError::Other("路径为空".into()));
+    }
+    // 替换所有正斜杠为反斜杠
+    let mut norm: String = trimmed.chars().map(|c| if c == '/' { '\\' } else { c }).collect();
+    // 合并连续反斜杠（保留 UNC 前缀 \\ 的合法性这里不做通用处理，软件安装路径都在本地盘）
+    let mut collapsed = String::with_capacity(norm.len());
+    let mut prev_backslash = false;
+    for c in norm.chars() {
+        if c == '\\' {
+            if !prev_backslash {
+                collapsed.push(c);
+            }
+            prev_backslash = true;
+        } else {
+            collapsed.push(c);
+            prev_backslash = false;
+        }
+    }
+    norm = collapsed;
+    // 去掉末尾多余的反斜杠（**保留盘符根 "\\"**）
+    while norm.len() > 3 && norm.ends_with('\\') {
+        norm.pop();
+    }
+    // 如果形如 "D:"，补反斜杠变成 "D:\\"
+    let bytes: Vec<char> = norm.chars().collect();
+    if bytes.len() == 2 && bytes[1] == ':' && bytes[0].is_ascii_alphabetic() {
+        norm.push('\\');
+    }
+    // 基本校验：绝对路径
+    if !Path::new(&norm).is_absolute() {
+        return Err(AppError::Other(format!("路径非绝对路径: {}", norm)));
+    }
+    Ok(norm)
+}
+
 /// 把已安装软件从 original_path 搬到 target_root 下，并在原位创建 junction。
 pub fn move_app(req: MoveRequest, app: &AppHandle) -> AppResult<MoveRecord> {
     let id = uuid::Uuid::new_v4().to_string();
-    let original = req.original_path.trim().trim_end_matches('\\').to_string();
-    let target_root = req.target_root.trim().trim_end_matches('\\').to_string();
+    let original = normalize_absolute_path(&req.original_path)?;
+    let target_root = normalize_absolute_path(&req.target_root)?;
 
     // ---- 校验 ----
     if !Path::new(&original).is_dir() {

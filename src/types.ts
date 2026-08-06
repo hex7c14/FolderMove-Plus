@@ -60,3 +60,11 @@ export interface KillResult {
   killed: number[];
   failed: { pid: number; reason: string }[];
 }
+
+/** 内嵌文件管理器的文件夹条目 */
+export interface FolderEntry {
+  /** 文件夹短名（如 "Program Files"） */
+  name: string;
+  /** 完整绝对路径 */
+  path: string;
+}

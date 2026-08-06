@@ -1,5 +1,6 @@
 mod disk;
 mod error;
+mod fs;
 mod icon;
 mod junction;
 mod manifest;
@@ -8,6 +9,7 @@ mod mover;
 mod proc;
 mod scan;
 
+use fs::FolderEntry;
 use models::{AppInfo, DriveInfo, MoveRecord, MoveRequest};
 use proc::{KillResult, ProcInfo};
 use tauri::AppHandle;
@@ -87,6 +89,33 @@ async fn kill_processes(pids: Vec<u32>) -> Result<KillResult, String> {
         .map_err(Into::into)
 }
 
+/// 列出指定目录下的直接子文件夹（仅文件夹，不包含文件；自动跳过隐藏/系统目录）
+#[tauri::command]
+async fn list_folders(dir: String) -> Result<Vec<FolderEntry>, String> {
+    tauri::async_runtime::spawn_blocking(move || fs::list_subfolders(&dir))
+        .await
+        .map_err(|e| format!("{e}"))?
+        .map_err(Into::into)
+}
+
+/// 在指定父目录下创建一个新文件夹
+#[tauri::command]
+async fn create_folder(parent: String, name: String) -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(move || fs::create_folder(&parent, &name))
+        .await
+        .map_err(|e| format!("{e}"))?
+        .map_err(Into::into)
+}
+
+/// 重命名一个文件夹（仅支持同目录改名，不跨目录移动）
+#[tauri::command]
+async fn rename_folder(old_path: String, new_name: String) -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(move || fs::rename_folder(&old_path, &new_name))
+        .await
+        .map_err(|e| format!("{e}"))?
+        .map_err(Into::into)
+}
+
 pub fn run() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
@@ -99,6 +128,9 @@ pub fn run() {
             list_moved,
             check_processes,
             kill_processes,
+            list_folders,
+            create_folder,
+            rename_folder,
         ])
         .run(tauri::generate_context!())
         .expect("启动 FolderMove-Plus 失败");

@@ -3,6 +3,7 @@ import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import type {
   AppInfo,
   DriveInfo,
+  FolderEntry,
   KillResult,
   MoveRecord,
   MoveRequest,
@@ -25,6 +26,14 @@ export const api = {
   /** 结束指定 pid 的进程 */
   killProcesses: (pids: number[]) =>
     invoke<KillResult>("kill_processes", { pids }),
+  /** 列出指定目录下的直接子文件夹（仅文件夹，跳过隐藏/系统目录） */
+  listFolders: (dir: string) => invoke<FolderEntry[]>("list_folders", { dir }),
+  /** 在 parent 目录下创建一个新文件夹，返回其完整路径 */
+  createFolder: (parent: string, name: string) =>
+    invoke<string>("create_folder", { parent, name }),
+  /** 重命名文件夹（仅支持同目录改名，不跨目录移动） */
+  renameFolder: (oldPath: string, newName: string) =>
+    invoke<string>("rename_folder", { oldPath, newName }),
 };
 
 export function onProgress(cb: (p: ProgressPayload) => void): Promise<UnlistenFn> {
