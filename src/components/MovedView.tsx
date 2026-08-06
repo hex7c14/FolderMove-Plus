@@ -1,4 +1,4 @@
-import { RotateCcw, ArrowRight, Package, FolderInput } from "lucide-react";
+import { ArrowCounterclockwise20Regular, ArrowRight20Regular, Box20Regular, FolderArrowRight32Regular } from "@fluentui/react-icons";
 import type { MoveRecord } from "../types";
 import { Avatar } from "./Avatar";
 import { formatBytes, formatDateTime } from "../lib/format";
@@ -13,7 +13,7 @@ export function MovedView({ records, onRestore, busyId }: Props) {
   if (records.length === 0) {
     return (
       <Empty
-        icon={<FolderInput size={30} className="ink-soft" />}
+        icon={<FolderArrowRight32Regular className="ink-soft" />}
         title="还没有移动过软件"
         desc="在「软件列表」中选择目标盘把软件搬走，移动记录会出现在这里，可随时还原。"
       />
@@ -23,7 +23,7 @@ export function MovedView({ records, onRestore, busyId }: Props) {
   return (
     <div className="animate-fade-in">
       <div className="mb-4 flex items-center gap-2 text-sm ink-secondary">
-        <Package size={16} className="text-brand-500 dark:text-brand-400" />
+        <Box20Regular className="text-brand-500 dark:text-brand-400" />
         共 {records.length} 个已移动 · 累计释放 C 盘约
         <span className="font-semibold text-brand-700 dark:text-brand-400">{formatBytes(totalFreed)}</span>
       </div>
@@ -40,7 +40,7 @@ export function MovedView({ records, onRestore, busyId }: Props) {
                 </div>
                 <div className="mt-1 flex items-center gap-1.5 text-xs ink-soft flex-wrap">
                   <code className="ink-secondary">{r.original_path}</code>
-                  <ArrowRight size={12} className="ink-soft" />
+                  <ArrowRight20Regular className="ink-soft" />
                   <code className="text-brand-600 dark:text-brand-400">{r.new_path}</code>
                 </div>
                 <div className="mt-1 text-[11px] ink-soft">
@@ -53,7 +53,7 @@ export function MovedView({ records, onRestore, busyId }: Props) {
                 className="btn-subtle shrink-0"
                 title="把软件还原回原位置"
               >
-                <RotateCcw size={15} className={busy ? "animate-spin" : ""} />
+                <ArrowCounterclockwise20Regular className={busy ? "animate-spin" : ""} />
                 {busy ? "还原中" : "还原"}
               </button>
             </div>

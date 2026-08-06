@@ -1,4 +1,4 @@
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { SpinnerIos20Regular, CheckmarkCircle24Filled } from "@fluentui/react-icons";
 import type { ProgressPayload } from "../types";
 import { formatBytes } from "../lib/format";
 
@@ -23,9 +23,9 @@ export function ProgressOverlay({ progress }: { progress: ProgressPayload }) {
       <div className="card w-[420px] p-7 animate-slide-up">
         <div className="flex items-center gap-3 mb-5">
           {isDone ? (
-            <CheckCircle2 size={26} className="text-emerald-500" />
+            <CheckmarkCircle24Filled className="text-emerald-500" />
           ) : (
-            <Loader2 size={26} className="text-brand-600 dark:text-brand-400 animate-spin" />
+            <SpinnerIos20Regular className="text-brand-600 dark:text-brand-400 animate-spin" />
           )}
           <div>
             <div className="font-semibold ink-primary">

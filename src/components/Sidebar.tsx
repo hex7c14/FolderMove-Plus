@@ -1,4 +1,4 @@
-import { FolderInput, ListChecks, Info, HardDrive } from "lucide-react";
+import { FolderArrowRight24Regular, List24Regular, Info24Regular, HardDrive24Regular } from "@fluentui/react-icons";
 import type { DriveInfo, MoveRecord } from "../types";
 import { formatBytes, pct, driveLetter } from "../lib/format";
 
@@ -14,9 +14,9 @@ interface Props {
 
 export function Sidebar({ tab, setTab, movedCount, drives, moved }: Props) {
   const items = [
-    { id: "apps" as const, label: "软件列表", Icon: ListChecks },
-    { id: "moved" as const, label: "已移动", Icon: FolderInput, badge: movedCount },
-    { id: "about" as const, label: "关于", Icon: Info },
+    { id: "apps" as const, label: "软件列表", Icon: List24Regular },
+    { id: "moved" as const, label: "已移动", Icon: FolderArrowRight24Regular, badge: movedCount },
+    { id: "about" as const, label: "关于", Icon: Info24Regular },
   ];
 
   // 仅显示固定盘，C 盘置顶
@@ -35,7 +35,7 @@ export function Sidebar({ tab, setTab, movedCount, drives, moved }: Props) {
           className="w-10 h-10 rounded-xl flex items-center justify-center shadow-soft"
           style={{ background: "linear-gradient(135deg,#3b66ff,#2948f5)" }}
         >
-          <FolderInput size={22} className="text-white" />
+        <FolderArrowRight24Regular className="text-white" />
         </div>
         <div>
           <div className="font-semibold ink-primary leading-tight">FolderMove-Plus</div>
@@ -57,7 +57,6 @@ export function Sidebar({ tab, setTab, movedCount, drives, moved }: Props) {
               }`}
             >
               <it.Icon
-                size={18}
                 className={active ? "text-brand-600 dark:text-brand-400" : "ink-soft"}
               />
               <span className="flex-1 text-left">{it.label}</span>
@@ -103,7 +102,7 @@ function DriveBar({ d, moved }: { d: DriveInfo; moved: MoveRecord[] }) {
   return (
     <div className="rounded-lg bg-panel-soft dark:bg-white/5 p-3">
       <div className="flex items-center gap-2 mb-2">
-        <HardDrive size={14} className="ink-soft" />
+        <HardDrive24Regular className="ink-soft" />
         <span className="text-xs font-medium ink-secondary">{letter} 盘</span>
         <span className="ml-auto text-xs ink-soft">{p}%</span>
       </div>

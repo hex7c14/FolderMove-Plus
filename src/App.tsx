@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { CheckCircle2, AlertTriangle, X } from "lucide-react";
+import { CheckmarkCircle20Filled, Warning20Filled, Dismiss20Regular } from "@fluentui/react-icons";
 import type {
   AppInfo,
   DriveInfo,
@@ -161,16 +161,16 @@ export default function App() {
             }`}
           >
             {toast.type === "success" ? (
-              <CheckCircle2 size={18} className="text-emerald-500" />
+              <CheckmarkCircle20Filled className="text-emerald-500" />
             ) : (
-              <AlertTriangle size={18} className="text-red-500" />
+              <Warning20Filled className="text-red-500" />
             )}
             <span className="text-sm ink-primary max-w-xs">{toast.msg}</span>
             <button
               className="ml-1 ink-soft hover:ink-secondary"
               onClick={() => setToast(null)}
             >
-              <X size={14} />
+              <Dismiss20Regular />
             </button>
           </div>
         </div>

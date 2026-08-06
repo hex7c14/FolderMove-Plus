@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Search, ArrowRight, RefreshCw, Link2, Ban, ShieldAlert, ShieldCheck, Shield } from "lucide-react";
+import { Search16Regular, ArrowRight16Regular, ArrowClockwise16Regular, Link16Regular, Prohibited16Regular, ShieldError16Regular, ShieldCheckmark16Regular, Shield16Regular } from "@fluentui/react-icons";
 import type { AppInfo, DriveInfo } from "../types";
 import { Avatar } from "./Avatar";
 import { formatBytes, driveLetter } from "../lib/format";
@@ -40,7 +40,7 @@ export function AppList({ apps, loading, onMove, onRescan }: Props) {
     <div className="animate-fade-in">
       <div className="flex items-center gap-3 mb-4">
         <div className="relative flex-1 max-w-md">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 ink-soft" />
+          <Search16Regular className="absolute left-3 top-1/2 -translate-y-1/2 ink-soft" />
           <input
             className="field pl-9"
             placeholder="搜索软件名、发布者或路径…"
@@ -69,7 +69,7 @@ export function AppList({ apps, loading, onMove, onRescan }: Props) {
             <option value="name">按名称排序</option>
           </select>
           <button className="btn-ghost" onClick={onRescan} title="重新扫描">
-            <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
+            <ArrowClockwise16Regular className={loading ? "animate-spin" : ""} />
           </button>
         </div>
       </div>
@@ -99,20 +99,20 @@ function RiskBadge({ level }: { level: AppInfo["risk_level"] }) {
   if (level === "high") {
     return (
       <span className="chip bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-300 shrink-0" title="高风险：移动可能影响系统稳定性">
-        <ShieldAlert size={11} /> 高风险
+        <ShieldError16Regular /> 高风险
       </span>
     );
   }
   if (level === "medium") {
     return (
       <span className="chip bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300 shrink-0" title="中风险：建议先退出软件">
-        <Shield size={11} /> 中风险
+        <Shield16Regular /> 中风险
       </span>
     );
   }
   return (
     <span className="chip bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 shrink-0" title="低风险：可放心移动">
-      <ShieldCheck size={11} /> 低风险
+      <ShieldCheckmark16Regular /> 低风险
     </span>
   );
 }
@@ -130,7 +130,7 @@ function AppRow({ app, onMove }: { app: AppInfo; onMove: (a: AppInfo) => void })
           )}
           {app.is_already_linked && (
             <span className="chip bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300 shrink-0">
-              <Link2 size={11} /> 已链接
+              <Link16Regular /> 已链接
             </span>
           )}
           <RiskBadge level={app.risk_level} />
@@ -154,7 +154,7 @@ function AppRow({ app, onMove }: { app: AppInfo; onMove: (a: AppInfo) => void })
         {app.is_movable ? (
           <button className="btn-primary" onClick={() => onMove(app)}>
             移动
-            <ArrowRight size={15} />
+            <ArrowRight16Regular />
           </button>
         ) : (
           <button
@@ -162,7 +162,7 @@ function AppRow({ app, onMove }: { app: AppInfo; onMove: (a: AppInfo) => void })
             disabled
             title={app.not_movable_reason ?? "不可移动"}
           >
-            <Ban size={14} />
+            <Prohibited16Regular />
             不可移动
           </button>
         )}

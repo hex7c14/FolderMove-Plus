@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  X,
-  ArrowRight,
-  HardDrive,
-  AlertTriangle,
-  CheckCircle2,
-  Loader2,
-  FolderTree,
-  ShieldAlert,
-  Skull,
-  RefreshCw,
-} from "lucide-react";
+  Dismiss20Regular,
+  ArrowRight20Regular,
+  HardDrive20Regular,
+  Warning20Filled,
+  CheckmarkCircle20Filled,
+  SpinnerIos20Regular,
+  Folder20Regular,
+  ShieldError20Regular,
+  WarningShield20Filled,
+  ArrowClockwise20Regular,
+} from "@fluentui/react-icons";
 import type { AppInfo, DriveInfo, MoveRecord, MoveRequest, ProcInfo } from "../types";
 import { Avatar } from "./Avatar";
 import { formatBytes, driveDisplay, driveLetter } from "../lib/format";
@@ -167,7 +167,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
             <div className="text-xs ink-soft truncate">{app.publisher ?? "未知发布者"}</div>
           </div>
           <button className="btn-ghost -mr-2 -mt-1" onClick={onClose} disabled={submitting}>
-            <X size={18} />
+            <Dismiss20Regular />
           </button>
         </div>
 
@@ -176,7 +176,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
           <div className="text-[11px] uppercase tracking-wide ink-soft mb-1">迁移路径</div>
           <div className="flex items-center gap-2 text-sm flex-wrap">
             <code className="ink-secondary">{app.install_location}</code>
-            <ArrowRight size={14} className="text-brand-500 dark:text-brand-400" />
+            <ArrowRight20Regular className="text-brand-500 dark:text-brand-400" />
             <code className="text-brand-700 dark:text-brand-400 font-medium">{newPath || "—"}</code>
           </div>
           <div className="mt-2 flex items-center gap-3 text-xs">
@@ -184,7 +184,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
               软件大小：
               {computing ? (
                 <span className="ink-soft inline-flex items-center gap-1">
-                  <Loader2 size={11} className="animate-spin" /> 计算中
+                  <SpinnerIos20Regular className="animate-spin" /> 计算中
                 </span>
               ) : (
                 <span className="font-medium ink-primary">{formatBytes(size)}</span>
@@ -214,7 +214,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <HardDrive size={16} className={active ? "text-brand-600 dark:text-brand-400" : "ink-soft"} />
+                    <HardDrive20Regular className={active ? "text-brand-600 dark:text-brand-400" : "ink-soft"} />
                     <span className="font-medium ink-primary">{driveDisplay(d)}</span>
                   </div>
                   <div className="mt-1.5 h-1.5 rounded-full bg-panel-soft dark:bg-white/10 overflow-hidden">
@@ -252,7 +252,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
         {/* 高风险提示 */}
         {app.risk_level === "high" && (
           <div className="rounded-lg p-3 mb-4 bg-red-50 text-red-700 border border-red-200 text-sm flex gap-2 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/30">
-            <ShieldAlert size={16} className="shrink-0 mt-0.5" />
+            <ShieldError20Regular className="shrink-0 mt-0.5" />
             <span>
               <strong>高风险警告：</strong>
               {app.risk_reason ?? "此目录涉及系统关键路径，移动后可能导致系统或软件异常。"}
@@ -264,14 +264,14 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
         {/* 残留进程检测 */}
         {procStage === "checking" && (
           <div className="rounded-lg p-3 mb-4 bg-panel-soft dark:bg-white/5 ink-secondary border border-soft text-sm flex items-center gap-2">
-            <Loader2 size={16} className="animate-spin" />
+            <SpinnerIos20Regular className="animate-spin" />
             正在检测残留进程…
           </div>
         )}
 
         {procStage === "killing" && (
           <div className="rounded-lg p-3 mb-4 bg-amber-50 text-amber-700 border border-amber-200 text-sm flex items-center gap-2 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30">
-            <Loader2 size={16} className="animate-spin" />
+            <SpinnerIos20Regular className="animate-spin" />
             正在结束残留进程…
           </div>
         )}
@@ -279,7 +279,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
         {procs && procs.length > 0 && procStage === "idle" && (
           <div className="rounded-lg p-3 mb-4 bg-amber-50 border border-amber-200 text-sm dark:bg-amber-500/10 dark:border-amber-500/30">
             <div className="flex items-start gap-2 text-amber-800 dark:text-amber-300">
-              <Skull size={16} className="shrink-0 mt-0.5" />
+              <WarningShield20Filled className="shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
                 <div className="font-medium">
                   检测到 {procs.length} 个残留进程仍占用该目录
@@ -317,11 +317,11 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
                 onClick={killAndMove}
                 disabled={busy}
               >
-                <Skull size={13} />
+                <WarningShield20Filled />
                 结束残留进程并继续
               </button>
               <button className="btn-ghost !py-1.5 !text-xs" onClick={recheck} disabled={busy}>
-                <RefreshCw size={13} />
+                <ArrowClockwise20Regular />
                 重新检测
               </button>
             </div>
@@ -330,7 +330,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
 
         {procs && procs.length === 0 && procStage === "idle" && !submitting && (
           <div className="rounded-lg p-3 mb-4 bg-emerald-50 text-emerald-700 border border-emerald-200 text-sm flex items-center gap-2 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30">
-            <CheckCircle2 size={16} />
+            <CheckmarkCircle20Filled />
             未检测到残留进程，可以安全移动
           </div>
         )}
@@ -344,7 +344,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
                 : "bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30"
             }`}
           >
-            {willFit ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
+            {willFit ? <CheckmarkCircle20Filled /> : <Warning20Filled />}
             <span>
               {willFit
                 ? `空间充足，移动后预计释放 ${formatBytes(size)}`
@@ -355,13 +355,13 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
 
         {error && (
           <div className="rounded-lg p-3 mb-4 bg-red-50 text-red-700 border border-red-200 text-sm flex gap-2 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/30">
-            <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+            <Warning20Filled className="shrink-0 mt-0.5" />
             <span className="break-all">{error}</span>
           </div>
         )}
 
         <div className="flex items-center gap-2 pt-1 border-t border-soft -mx-6 -mb-6 px-6 py-3 mt-1">
-          <FolderTree size={14} className="ink-soft" />
+          <Folder20Regular className="ink-soft" />
           <span className="text-xs ink-soft mr-auto">
             通过 NTFS Junction 迁移，路径不变，软件照常运行
           </span>
@@ -376,19 +376,19 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
           >
             {procStage === "checking" ? (
               <>
-                <Loader2 size={15} className="animate-spin" /> 检测进程
+                <SpinnerIos20Regular className="animate-spin" /> 检测进程
               </>
             ) : procStage === "killing" ? (
               <>
-                <Loader2 size={15} className="animate-spin" /> 结束进程
+                <SpinnerIos20Regular className="animate-spin" /> 结束进程
               </>
             ) : submitting ? (
               <>
-                <Loader2 size={15} className="animate-spin" /> 移动中
+                <SpinnerIos20Regular className="animate-spin" /> 移动中
               </>
             ) : (
               <>
-                确认移动 <ArrowRight size={15} />
+                确认移动 <ArrowRight20Regular />
               </>
             )}
           </button>

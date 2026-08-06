@@ -1,4 +1,4 @@
-import { ShieldCheck, Link2, FolderInput, AlertTriangle, Github } from "lucide-react";
+import { ShieldCheckmark20Regular, Link20Regular, FolderArrowRight20Regular, Warning20Filled, Code20Filled } from "@fluentui/react-icons";
 
 export function AboutView() {
   return (
@@ -14,7 +14,7 @@ export function AboutView() {
           <div className="flex items-center gap-2 flex-wrap">
             <h2 className="text-xl font-bold ink-primary">0x7c14</h2>
             <span className="chip bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300">
-              <Github size={11} />
+              <Code20Filled />
               Developer
             </span>
           </div>
@@ -35,9 +35,9 @@ export function AboutView() {
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
-        <Feature Icon={FolderInput} title="原位搬迁" desc="文件移走，路径不变" />
-        <Feature Icon={Link2} title="Junction 链接" desc="原生 NTFS 特性，零性能损耗" />
-        <Feature Icon={ShieldCheck} title="可随时还原" desc="记录在册，一键回迁" />
+        <Feature Icon={FolderArrowRight20Regular} title="原位搬迁" desc="文件移走，路径不变" />
+        <Feature Icon={Link20Regular} title="Junction 链接" desc="原生 NTFS 特性，零性能损耗" />
+        <Feature Icon={ShieldCheckmark20Regular} title="可随时还原" desc="记录在册，一键回迁" />
       </div>
 
       <h3 className="text-sm font-semibold ink-primary mb-2">工作流程</h3>
@@ -49,7 +49,7 @@ export function AboutView() {
       </ol>
 
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 flex gap-3 dark:bg-amber-500/10 dark:border-amber-500/30">
-        <AlertTriangle size={18} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+        <Warning20Filled className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
         <div className="text-sm text-amber-800 dark:text-amber-200 leading-relaxed">
           <strong>使用建议：</strong>移动前请先<strong>完全退出</strong>目标软件（包括托盘与后台进程），
           否则文件被占用会导致复制或重命名失败。<strong>高风险</strong>评级的项目涉及系统关键目录，
@@ -65,14 +65,14 @@ function Feature({
   title,
   desc,
 }: {
-  Icon: typeof ShieldCheck;
+  Icon: React.ComponentType<{ className?: string }>;
   title: string;
   desc: string;
 }) {
   return (
     <div className="card p-4">
       <div className="w-9 h-9 rounded-lg bg-brand-50 dark:bg-brand-500/15 flex items-center justify-center mb-2">
-        <Icon size={18} className="text-brand-600 dark:text-brand-400" />
+        <Icon className="text-brand-600 dark:text-brand-400" />
       </div>
       <div className="text-sm font-medium ink-primary">{title}</div>
       <div className="text-xs ink-soft mt-0.5">{desc}</div>
