@@ -121,7 +121,7 @@ function AppRow({ app, onMove }: { app: AppInfo; onMove: (a: AppInfo) => void })
   const letter = app.source_drive.replace(/\\/g, "").replace(":", "");
   return (
     <div className="card p-3.5 flex items-center gap-3.5 hover:shadow-glow transition-shadow group">
-      <Avatar name={app.display_name} size={44} />
+      <Avatar name={app.display_name} size={44} icon={app.icon} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="font-medium ink-primary truncate">{app.display_name}</span>

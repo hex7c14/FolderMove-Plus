@@ -405,7 +405,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
       >
         {/* 顶部：标题 + 关闭 */}
         <div className="flex items-start gap-3 mb-5">
-          <Avatar name={app.display_name} size={48} />
+          <Avatar name={app.display_name} size={48} icon={app.icon} />
           <div className="flex-1 min-w-0">
             <div className="font-semibold ink-primary truncate">
               {app.display_name}
