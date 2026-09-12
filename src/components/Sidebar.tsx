@@ -1,8 +1,8 @@
-import { FolderArrowRight24Regular, List24Regular, Info24Regular, HardDrive24Regular } from "@fluentui/react-icons";
+import { FolderArrowRight24Regular, List24Regular, HardDrive24Regular } from "@fluentui/react-icons";
 import type { DriveInfo, MoveRecord } from "../types";
 import { formatBytes, pct, driveLetter } from "../lib/format";
 
-export type Tab = "apps" | "moved" | "about";
+export type Tab = "apps" | "moved";
 
 interface Props {
   tab: Tab;
@@ -16,7 +16,6 @@ export function Sidebar({ tab, setTab, movedCount, drives, moved }: Props) {
   const items = [
     { id: "apps" as const, label: "软件列表", Icon: List24Regular },
     { id: "moved" as const, label: "已移动", Icon: FolderArrowRight24Regular, badge: movedCount },
-    { id: "about" as const, label: "关于", Icon: Info24Regular },
   ];
 
   // 仅显示固定盘，C 盘置顶
@@ -30,20 +29,7 @@ export function Sidebar({ tab, setTab, movedCount, drives, moved }: Props) {
 
   return (
     <aside className="w-60 shrink-0 h-full flex flex-col bg-panel-glass border-r border-soft">
-      <div className="px-5 py-5 flex items-center gap-3">
-        <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center shadow-soft"
-          style={{ background: "linear-gradient(135deg,#3b66ff,#2948f5)" }}
-        >
-        <FolderArrowRight24Regular className="text-white" />
-        </div>
-        <div>
-          <div className="font-semibold ink-primary leading-tight">FolderMove-Plus</div>
-          <div className="text-xs ink-soft">软件搬家 · 释放 C 盘</div>
-        </div>
-      </div>
-
-      <nav className="px-3 py-2 flex flex-col gap-1">
+      <nav className="px-3 pt-4 pb-2 flex flex-col gap-1">
         {items.map((it) => {
           const active = tab === it.id;
           return (

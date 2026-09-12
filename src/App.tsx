@@ -13,7 +13,6 @@ import { AppList } from "./components/AppList";
 import { MoveDialog } from "./components/MoveDialog";
 import { ProgressOverlay } from "./components/ProgressOverlay";
 import { MovedView } from "./components/MovedView";
-import { AboutView } from "./components/AboutView";
 
 interface Toast {
   type: "success" | "error";
@@ -137,7 +136,6 @@ export default function App() {
               busyId={busyRestoreId}
             />
           )}
-          {tab === "about" && <AboutView />}
         </div>
       </main>
 
@@ -182,7 +180,6 @@ export default function App() {
 const TITLES: Record<Tab, { t: string; s: string }> = {
   apps: { t: "软件列表", s: "选择要搬到其他盘的软件" },
   moved: { t: "已移动", s: "随时还原到原位置" },
-  about: { t: "关于 FolderMove-Plus", s: "工作原理与使用须知" },
 };
 
 function fmt(b: number): string {
