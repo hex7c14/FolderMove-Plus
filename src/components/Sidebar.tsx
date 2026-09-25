@@ -1,6 +1,9 @@
 import { FolderArrowRight24Regular, List24Regular, HardDrive24Regular } from "@fluentui/react-icons";
 import type { DriveInfo, MoveRecord } from "../types";
-import { formatBytes, pct, driveLetter } from "../lib/format";
+import { driveLetter, pct } from "../lib/format";
+import { useFormatters } from "../lib/useFormatters";
+import { K, useTranslation } from "../i18n";
+import { LanguageSwitch } from "./LanguageSwitch";
 
 export type Tab = "apps" | "moved";
 
@@ -13,9 +16,11 @@ interface Props {
 }
 
 export function Sidebar({ tab, setTab, movedCount, drives, moved }: Props) {
+  const { t } = useTranslation();
+
   const items = [
-    { id: "apps" as const, label: "软件列表", Icon: List24Regular },
-    { id: "moved" as const, label: "已移动", Icon: FolderArrowRight24Regular, badge: movedCount },
+    { id: "apps" as const, label: t(K.nav.apps), Icon: List24Regular },
+    { id: "moved" as const, label: t(K.nav.moved), Icon: FolderArrowRight24Regular, badge: movedCount },
   ];
 
   // 仅显示固定盘，C 盘置顶
@@ -56,18 +61,23 @@ export function Sidebar({ tab, setTab, movedCount, drives, moved }: Props) {
 
       <div className="mt-auto p-4 flex flex-col gap-2">
         {fixedDrives.length === 0 ? (
-          <div className="text-[11px] ink-soft text-center py-2">未检测到磁盘</div>
+          <div className="text-[11px] ink-soft text-center py-2">{t(K.sidebar.noDrives)}</div>
         ) : (
           fixedDrives.map((d) => (
             <DriveBar key={d.letter} d={d} moved={moved} />
           ))
         )}
+        <div className="pt-1 border-t border-soft mt-1">
+          <LanguageSwitch />
+        </div>
       </div>
     </aside>
   );
 }
 
 function DriveBar({ d, moved }: { d: DriveInfo; moved: MoveRecord[] }) {
+  const { t } = useTranslation();
+  const { bytes } = useFormatters();
   const letter = driveLetter(d).toUpperCase();
   const used = d.total_bytes - d.free_bytes;
   const p = pct(used, d.total_bytes);
@@ -89,7 +99,7 @@ function DriveBar({ d, moved }: { d: DriveInfo; moved: MoveRecord[] }) {
     <div className="rounded-lg bg-panel-soft dark:bg-white/5 p-3">
       <div className="flex items-center gap-2 mb-2">
         <HardDrive24Regular className="ink-soft" />
-        <span className="text-xs font-medium ink-secondary">{letter} 盘</span>
+        <span className="text-xs font-medium ink-secondary">{t(K.sidebar.drive, { letter })}</span>
         <span className="ml-auto text-xs ink-soft">{p}%</span>
       </div>
       <div className="relative h-2 rounded-full border-base overflow-hidden bg-panel dark:bg-white/10">
@@ -106,18 +116,21 @@ function DriveBar({ d, moved }: { d: DriveInfo; moved: MoveRecord[] }) {
               left: `${Math.max(0, p - movedPct)}%`,
               width: `${movedPct}%`,
             }}
-            title={`已搬入 ${formatBytes(movedToHere)}`}
+            title={t(K.sidebar.movedIn, { size: bytes(movedToHere) })}
           />
         )}
       </div>
       <div className="mt-1.5 text-[11px] ink-soft flex items-center gap-1 flex-wrap">
-        <span>剩余 {formatBytes(d.free_bytes)}</span>
-        <span className="opacity-50">/</span>
-        <span>共 {formatBytes(d.total_bytes)}</span>
+        <span>
+          {t(K.sidebar.freeOfTotal, {
+            free: bytes(d.free_bytes),
+            total: bytes(d.total_bytes),
+          })}
+        </span>
       </div>
       {!isC && movedToHere > 0 && (
         <div className="mt-0.5 text-[10px] text-brand-600 dark:text-brand-400 font-medium">
-          ↪ 已搬入 {formatBytes(movedToHere)}
+          ↪ {t(K.sidebar.movedIn, { size: bytes(movedToHere) })}
         </div>
       )}
     </div>

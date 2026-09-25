@@ -1,0 +1,235 @@
+{
+  "app": {
+    "title": "FolderMove-Plus",
+    "tagline": "软件搬家"
+  },
+  "nav": {
+    "apps": "软件列表",
+    "moved": "已移动"
+  },
+  "page": {
+    "apps": {
+      "title": "软件列表"
+    },
+    "moved": {
+      "title": "已移动"
+    }
+  },
+  "common": {
+    "cancel": "取消",
+    "next": "下一步",
+    "back": "上一步",
+    "retry": "重试",
+    "create": "创建",
+    "loading": "加载中…",
+    "empty": "—"
+  },
+  "settings": {
+    "language": "界面语言",
+    "languageSystem": "跟随系统"
+  },
+  "units": {
+    "B": "B",
+    "KB": "KB",
+    "MB": "MB",
+    "GB": "GB",
+    "TB": "TB",
+    "PB": "PB"
+  },
+  "sidebar": {
+    "noDrives": "未检测到磁盘",
+    "drive": "{{letter}} 盘",
+    "freeOfTotal": "剩余 {{free}} / 共 {{total}}",
+    "movedIn": "已搬入 {{size}}"
+  },
+  "list": {
+    "searchPlaceholder": "搜索软件名、发布者或路径…",
+    "filterByRisk": "按风险评级筛选",
+    "riskAll": "全部风险",
+    "riskLowOnly": "仅低风险",
+    "riskMediumOnly": "仅中风险",
+    "riskHighOnly": "仅高风险",
+    "sortBySize": "按大小排序",
+    "sortByName": "按名称排序",
+    "rescan": "重新扫描",
+    "scanning": "扫描中…",
+    "count": "共 {{count}} 个软件",
+    "empty": "没有匹配的软件",
+    "version": "v{{version}}",
+    "linked": "已链接",
+    "driveLabel": "{{letter}}: 盘",
+    "move": "移动",
+    "notMovable": "不可移动",
+    "notMovableFallback": "不可移动",
+    "risk": {
+      "high": "高风险",
+      "medium": "中风险",
+      "low": "低风险"
+    },
+    "riskTip": {
+      "high": "高风险：移动可能影响系统稳定性",
+      "medium": "中风险：建议先退出软件",
+      "low": "低风险：可放心移动"
+    }
+  },
+  "moved": {
+    "emptyTitle": "还没有移动过软件",
+    "emptyDesc": "在「软件列表」中选择目标盘把软件搬走，移动记录会出现在这里，可随时还原。",
+    "summary_other": "共 {{count}} 个已移动 · 累计释放 C 盘约 {{size}}",
+    "movedAt": "移动于 {{time}}",
+    "restore": "还原",
+    "restoring": "还原中",
+    "restoreTip": "把软件还原回原位置"
+  },
+  "dialog": {
+    "unknownPublisher": "未知发布者",
+    "pathOverview": "迁移路径",
+    "appSize": "软件大小：",
+    "computing": "计算中",
+    "mode": "模式：",
+    "modeAdvanced": "高级（自选目录）",
+    "modeDefault": "默认",
+    "step": {
+      "drive": "选盘",
+      "mode": "方式",
+      "pickdir": "选目录",
+      "confirm": "确认"
+    },
+    "stepDriveTitle": "第 1 步：选择目标盘",
+    "stepDriveEmpty": "没有检测到其他可用的固定盘，请先接入目标磁盘。",
+    "driveFree": "可用 {{size}}",
+    "stepModeTitle": "第 2 步：选择方式",
+    "modeDefaultName": "默认方式",
+    "modeDefaultDesc": "在目标盘根创建 FolderMove-Plus 文件夹，软件直接搬入其中。一步到位，99% 情况都够用。",
+    "modeAdvancedName": "高级方式",
+    "modeAdvancedDesc": "打开内嵌文件管理器，手动选择要存放的具体目录。支持新建文件夹、重命名，满足精细的目录组织需求。",
+    "stepPickdirTitle": "第 3 步：选择存放目录",
+    "pickdirHint": "选中后将在该目录下创建 {{name}}",
+    "goUp": "向上一级",
+    "newFolder": "新建文件夹",
+    "loadError": "无法读取目录：",
+    "noSubfolders": "该目录没有子文件夹",
+    "noSubfoldersHint": "可以直接把「当前目录」作为存放位置，或点上方「新建文件夹」",
+    "selected": "已选中",
+    "rename": "重命名",
+    "openFolder": "打开文件夹",
+    "highRiskTitle": "高风险警告：",
+    "highRiskFallback": "此目录涉及系统关键路径，移动后可能导致系统或软件异常。",
+    "highRiskSuffix": "请务必先创建还原点并完全退出相关软件。",
+    "spaceEnough": "空间充足，移动后预计释放 {{size}}",
+    "spaceNotEnough": "目标盘可用空间不足（{{free}} < {{size}}）",
+    "checkingProcs": "正在检测残留进程…",
+    "killingProcs": "正在结束残留进程…",
+    "procsFound": "检测到 {{count}} 个残留进程仍占用该目录",
+    "procsFoundHint": "若您已确认关闭软件，这些可能是未完全退出的残留进程。",
+    "procsKillFailed": "未能结束：",
+    "procsKillAndContinue": "结束残留进程并继续",
+    "procsRecheck": "重新检测",
+    "procsNone": "未检测到残留进程，可以安全移动",
+    "procsPendingTip": "请先处理残留进程",
+    "startMove": "开始搬家",
+    "openFileManager": "打开文件管理器",
+    "processing": {
+      "checking": "检测进程",
+      "killing": "结束进程",
+      "moving": "移动中"
+    }
+  },
+  "progress": {
+    "done": "操作完成",
+    "doneHint": "可以继续操作其他软件",
+    "runningHint": "请勿关闭软件或断电",
+    "fallbackPhase": "处理中",
+    "phase": {
+      "computing": "计算占用",
+      "copying": "复制文件",
+      "verifying": "校验完整性",
+      "linking": "创建链接",
+      "cleaning": "清理原文件",
+      "done": "完成"
+    }
+  },
+  "toast": {
+    "scanFailed": "扫描失败：{{error}}",
+    "moved": "已移动「{{name}}」，释放 {{size}}",
+    "restored": "已还原「{{name}}」",
+    "procCheckFailed": "进程检测失败：{{error}}",
+    "procKillFailed": "结束进程失败：{{error}}",
+    "procKillPartial": "部分进程无法结束：{{list}}",
+    "procEntry": "PID {{pid}}（{{reason}}）",
+    "procEntrySeparator": "、",
+    "pidListSeparator": "、"
+  },
+  "error": {
+    "pathNotFound": "路径不存在: {{path}}",
+    "pathEmpty": "路径为空",
+    "pathNotAbsolute": "路径非绝对路径: {{path}}",
+    "sourceDriveUnknown": "无法识别源盘符",
+    "targetDriveUnknown": "无法识别目标盘符",
+    "sameDrive": "目标路径与源路径位于同一盘符，无需移动",
+    "insufficientSpace": "目标盘可用空间不足: 需要 {{needed}} 字节，可用 {{available}} 字节",
+    "alreadyLinked": "源目录当前已是链接，无法再次移动: {{path}}",
+    "copyFailed": "复制阶段失败（robocopy 退出码 {{code}}）",
+    "copyFailedDetail": {
+      "robocopySpawn": "启动 robocopy 失败: {{error}}",
+      "robocopyExitCode": "robocopy 退出码 {{code}}（≥8 表示有文件失败，可能被占用，请先关闭该软件）",
+      "robocopyWait": "等待 robocopy 结束失败: {{error}}"
+    },
+    "verifyFailed": "复制完成但校验失败: 目标 {{size}} 字节，源约 {{expected}} 字节，复制不完整",
+    "renameFailed": "重命名源目录失败，可能软件正在运行或文件被占用: {{detail}}",
+    "linkFailed": "创建链接失败: {{detail}}",
+    "linkDetail": {
+      "createDir": "创建目录失败: {{error}}",
+      "openDir": "打开目录失败: {{error}}",
+      "setReparsePoint": "FSCTL_SET_REPARSE_POINT 失败: {{error}}",
+      "removeDir": "RemoveDirectoryW 失败: {{error}}",
+      "renameLink": "重命名链接失败: {{error}}",
+      "verifyFailed": "junction 校验失败"
+    },
+    "recordNotFound": "未找到 id 为 {{id}} 的移动记录",
+    "restoreNotLink": "原路径 {{path}} 不是链接，可能已被手动处理，无法自动还原",
+    "targetEmpty": "目标位置的副本是空的，已放弃还原以免把软件删掉：{{path}}。请检查该目录，或手动把文件拷回原位置。",
+    "cleanupFailed": "还原完成，但目标位置的副本没能删掉：{{path}}（{{detail}}）。可能是目录正被其他程序占用，关掉资源管理器或杀毒软件后手动删除即可。",
+    "windows": "Windows API 调用失败: {{detail}}",
+    "windowsDetail": {
+      "openProcess": "OpenProcess({{pid}}) 失败: {{error}}",
+      "terminateProcess": "TerminateProcess({{pid}}) 失败: {{error}}"
+    },
+    "io": "IO 错误: {{detail}}",
+    "json": "JSON 序列化错误: {{detail}}",
+    "other": "{{detail}}",
+    "localAppDataMissing": "无法获取 LOCALAPPDATA 环境变量",
+    "pathMustBeAbsolute": "路径必须为绝对路径：{{path}}",
+    "parentMustBeAbsolute": "父目录必须为绝对路径：{{path}}",
+    "oldPathMustBeAbsolute": "原路径必须为绝对路径：{{path}}",
+    "notAFolder": "不是文件夹：{{path}}",
+    "noParentDir": "非法路径（无父目录）：{{path}}",
+    "folderNameEmpty": "文件夹名不能为空",
+    "newFolderNameEmpty": "新文件夹名不能为空",
+    "folderExists": "文件夹已存在：{{path}}",
+    "folderNameExists": "同名文件夹已存在：{{path}}"
+  },
+  "reason": {
+    "dirMissing": "目录不存在或无法访问",
+    "dirInaccessible": "目录不可访问",
+    "alreadyLinked": "该目录已是链接，可能之前已移动过",
+    "alreadyJunction": "已是 Junction 链接，无需再次移动",
+    "systemCritical": "系统关键目录，移动后可能影响系统稳定性，强烈建议谨慎",
+    "driverOrRuntime": "驱动或运行库，被系统或其他软件依赖，移动后可能导致依赖软件异常",
+    "systemInstallDir": "位于系统级安装目录，移动需管理员权限，建议先退出软件",
+    "userDir": "位于用户目录，移动风险较低",
+    "normalDir": "常规安装目录"
+  },
+  "progressMessage": {
+    "computingSize": "正在计算占用大小…",
+    "copyingTo": "正在复制到 {{path}}",
+    "copying": "复制中…",
+    "copyingVerify": "复制完成，校验中…",
+    "linking": "正在创建链接…",
+    "cleaningOriginal": "正在清理原文件…",
+    "done": "完成",
+    "restoringTo": "回迁到 {{path}}",
+    "cleaningTarget": "清理目标盘副本…",
+    "restoreDone": "还原完成"
+  }
+}

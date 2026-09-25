@@ -1,12 +1,12 @@
 use std::fs;
 use std::path::PathBuf;
 
-use crate::error::{AppError, AppResult};
+use crate::error::{AppError, AppResult, FsError};
 use crate::models::MoveRecord;
 
 fn manifest_path() -> AppResult<PathBuf> {
     let local = std::env::var("LOCALAPPDATA")
-        .map_err(|_| AppError::Other("无法获取 LOCALAPPDATA 环境变量".into()))?;
+        .map_err(|_| AppError::from(FsError::LocalAppDataMissing))?;
     let dir = PathBuf::from(local).join("FolderMove-Plus");
     fs::create_dir_all(&dir)?;
     Ok(dir.join("manifest.json"))

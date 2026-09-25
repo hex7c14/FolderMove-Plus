@@ -24,12 +24,13 @@ export function Avatar({ name, size = 44, icon }: Props) {
         alt=""
         draggable={false}
         onError={() => setBroken(true)}
-        className="shrink-0 rounded-xl object-contain"
+        className="shrink-0 rounded-lg object-contain"
         style={{ width: size, height: size }}
       />
     );
   }
 
+  // 纯色打底 + 极轻的上下提亮，不做跨色相渐变（那是"AI 味"重灾区）
   const [c1, c2] = avatarColors(name);
   return (
     <div
@@ -38,7 +39,7 @@ export function Avatar({ name, size = 44, icon }: Props) {
         width: size,
         height: size,
         fontSize: size * 0.4,
-        background: `linear-gradient(135deg, ${c1}, ${c2})`,
+        background: `linear-gradient(180deg, ${c1}, ${c2})`,
       }}
     >
       {firstChar(name)}

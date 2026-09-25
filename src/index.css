@@ -15,6 +15,11 @@
   --mask: rgba(246, 247, 249, 0.55);
   --mask-strong: rgba(246, 247, 249, 0.8);
   --scroll-thumb: #c7cdd9;
+  /* Fluent 2 强调色（浅色主题）：默认 / 悬停 / 按下 */
+  --accent: #0f6cbd;
+  --accent-hover: #115ea3;
+  --accent-pressed: #0c3b5e;
+  --accent-fg: #ffffff;
 }
 
 .dark {
@@ -30,6 +35,11 @@
   --mask: rgba(18, 20, 28, 0.58);
   --mask-strong: rgba(18, 20, 28, 0.82);
   --scroll-thumb: #3a3f52;
+  /* Fluent dark 的强调色会**变亮**（#479ef5），这样深底上才够亮 */
+  --accent: #479ef5;
+  --accent-hover: #62abf5;
+  --accent-pressed: #2886de;
+  --accent-fg: #0b1a26;
 }
 
 html,
@@ -83,14 +93,28 @@ body {
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-all duration-150 select-none disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 rounded px-3.5 py-2 text-sm font-medium transition-colors duration-100 select-none disabled:opacity-50 disabled:cursor-not-allowed;
   }
+  /**
+   * 主按钮 = Fluent 2 的 Accent Button。
+   * 三条关键规则，都是为了"像 Win11 而不是像 AI 生成的界面"：
+   *   1. 用 Fluent 强调蓝 #0f6cbd（暗色 #479ef5），不用高饱和的靛蓝
+   *   2. 没有投影/光晕 —— Fluent 的实心按钮是平的
+   *   3. 按下不做缩放动画，只加深底色（active:scale 是很典型的"AI 味"）
+   * 颜色走 CSS 变量，这样暗色主题只需换变量值。
+   */
   .btn-primary {
-    @apply btn bg-brand-600 text-white hover:bg-brand-700 active:scale-[0.98];
-    box-shadow: 0 2px 8px -2px rgba(59, 102, 255, 0.38);
+    @apply btn text-white;
+    background-color: var(--accent);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background-color: var(--accent-hover);
+  }
+  .btn-primary:active:not(:disabled) {
+    background-color: var(--accent-pressed);
   }
   .dark .btn-primary {
-    box-shadow: 0 2px 10px -2px rgba(59, 102, 255, 0.55);
+    color: #0b1a26;
   }
   .btn-ghost {
     @apply btn hover:bg-ink-100 dark:hover:bg-white/10;
@@ -113,7 +137,7 @@ body {
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid var(--border-soft);
     box-shadow: 0 2px 8px -2px rgba(20, 30, 80, 0.06), 0 6px 24px -8px rgba(20, 30, 80, 0.1);
-    border-radius: 12px;
+    border-radius: 8px;
   }
   .dark .card {
     box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.35), 0 6px 24px -8px rgba(0, 0, 0, 0.45);
@@ -125,7 +149,7 @@ body {
     color: var(--text-secondary);
   }
   .field {
-    @apply w-full rounded-lg px-3 py-2 text-sm outline-none transition;
+    @apply w-full rounded px-3 py-2 text-sm outline-none transition-colors duration-100;
     background: var(--panel-bg-solid);
     border: 1px solid var(--border);
     color: var(--text-primary);
@@ -133,12 +157,13 @@ body {
   .field::placeholder {
     color: var(--text-soft);
   }
+  /* Fluent 的输入框聚焦是「加一条下边框」，不是发光环 */
   .field:focus {
-    border-color: #5e8bff;
-    box-shadow: 0 0 0 3px rgba(59, 102, 255, 0.18);
+    border-color: var(--accent);
+    box-shadow: inset 0 -1px 0 0 var(--accent);
   }
-  .dark .field:focus {
-    box-shadow: 0 0 0 3px rgba(59, 102, 255, 0.32);
+  .field:focus-visible {
+    outline: none;
   }
 }
 
@@ -152,15 +177,14 @@ body {
   background: rgba(5, 7, 14, 0.65);
 }
 
-/* 字母头像渐变 */
+/* 字母头像 */
 .avatar {
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
   font-weight: 600;
-  border-radius: 12px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
 }
 
 /* 主题语义工具类（统一替代 text-ink-* / bg-ink-* / border-ink-*） */

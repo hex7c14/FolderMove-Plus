@@ -62,7 +62,10 @@ pub struct MoveRecord {
     pub target_drive: String,
 }
 
-/// 推送给前端的进度事件
+/// 推送给前端的进度事件。
+///
+/// `message_code` / `message_params` 是**消息码 + 参数**，前端用当前语言翻译；
+/// 之所以不直接推中文句子，是为了让语言切换对进行中的进度提示也生效。
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProgressPayload {
@@ -70,17 +73,28 @@ pub struct ProgressPayload {
     pub phase: String,
     pub current: u64,
     pub total: u64,
-    pub message: String,
+    /// 对应 `src/i18n/locales/*.json` 里的 `progressMessage.<code>`
+    pub message_code: String,
+    /// 插值参数；无参数时为 `{}`
+    #[serde(default)]
+    pub message_params: serde_json::Value,
 }
 
 impl ProgressPayload {
-    pub fn new(id: &str, phase: &str, current: u64, total: u64, message: impl Into<String>) -> Self {
+    pub fn new(
+        id: &str,
+        phase: &str,
+        current: u64,
+        total: u64,
+        message: crate::error::Message,
+    ) -> Self {
         Self {
             id: id.to_string(),
             phase: phase.to_string(),
             current,
             total,
-            message: message.into(),
+            message_code: message.code.to_string(),
+            message_params: message.params,
         }
     }
 }

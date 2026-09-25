@@ -1,8 +1,11 @@
-import { useMemo, useState } from "react";
 import { Search16Regular, ArrowRight16Regular, ArrowClockwise16Regular, Link16Regular, Prohibited16Regular, ShieldError16Regular, ShieldCheckmark16Regular, Shield16Regular } from "@fluentui/react-icons";
-import type { AppInfo, DriveInfo } from "../types";
+import { useMemo, useState } from "react";
+import type { AppInfo, DriveInfo, RiskLevel } from "../types";
 import { Avatar } from "./Avatar";
-import { formatBytes, driveLetter } from "../lib/format";
+import { driveLetter } from "../lib/format";
+import { useFormatters } from "../lib/useFormatters";
+import { describeReason } from "../lib/errors";
+import { K, useTranslation } from "../i18n";
 
 interface Props {
   apps: AppInfo[];
@@ -12,12 +15,21 @@ interface Props {
   onRescan: () => void;
 }
 
-type RiskFilter = "all" | "low" | "medium" | "high";
+type RiskFilter = "all" | RiskLevel;
 
 export function AppList({ apps, loading, onMove, onRescan }: Props) {
+  const { t } = useTranslation();
+  const { compare, number } = useFormatters();
   const [query, setQuery] = useState("");
   const [riskFilter, setRiskFilter] = useState<RiskFilter>("all");
   const [sortBy, setSortBy] = useState<"size" | "name">("size");
+
+  const riskOptions: { value: RiskFilter; label: string }[] = [
+    { value: "all", label: t(K.list.riskAll) },
+    { value: "low", label: t(K.list.riskLowOnly) },
+    { value: "medium", label: t(K.list.riskMediumOnly) },
+    { value: "high", label: t(K.list.riskHighOnly) },
+  ];
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -31,10 +43,11 @@ export function AppList({ apps, loading, onMove, onRescan }: Props) {
     });
     list = [...list].sort((a, b) => {
       if (sortBy === "size") return b.estimated_size_bytes - a.estimated_size_bytes;
-      return a.display_name.localeCompare(b.display_name, "zh");
+      // 按当前语言的排序规则比较（中文按拼音，日文按假名）
+      return compare(a.display_name, b.display_name);
     });
     return list;
-  }, [apps, query, riskFilter, sortBy]);
+  }, [apps, query, riskFilter, sortBy, compare]);
 
   return (
     <div className="animate-fade-in">
@@ -43,7 +56,7 @@ export function AppList({ apps, loading, onMove, onRescan }: Props) {
           <Search16Regular className="absolute left-3 top-1/2 -translate-y-1/2 ink-soft" />
           <input
             className="field pl-9"
-            placeholder="搜索软件名、发布者或路径…"
+            placeholder={t(K.list.searchPlaceholder)}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -53,36 +66,37 @@ export function AppList({ apps, loading, onMove, onRescan }: Props) {
             className="field w-auto py-1.5 text-xs"
             value={riskFilter}
             onChange={(e) => setRiskFilter(e.target.value as RiskFilter)}
-            title="按风险评级筛选"
+            title={t(K.list.filterByRisk)}
           >
-            <option value="all">全部风险</option>
-            <option value="low">仅低风险</option>
-            <option value="medium">仅中风险</option>
-            <option value="high">仅高风险</option>
+            {riskOptions.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
           </select>
           <select
             className="field w-auto py-1.5 text-xs"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as "size" | "name")}
           >
-            <option value="size">按大小排序</option>
-            <option value="name">按名称排序</option>
+            <option value="size">{t(K.list.sortBySize)}</option>
+            <option value="name">{t(K.list.sortByName)}</option>
           </select>
-          <button className="btn-ghost" onClick={onRescan} title="重新扫描">
+          <button className="btn-ghost" onClick={onRescan} title={t(K.list.rescan)}>
             <ArrowClockwise16Regular className={loading ? "animate-spin" : ""} />
           </button>
         </div>
       </div>
 
       <div className="text-xs ink-soft mb-2.5">
-        {loading ? "扫描中…" : `共 ${filtered.length} 个软件`}
+        {loading ? t(K.list.scanning) : t(K.list.count, { count: number(filtered.length) })}
       </div>
 
       {loading && apps.length === 0 ? (
         <SkeletonList />
       ) : filtered.length === 0 ? (
         <div className="card p-12 text-center ink-soft text-sm">
-          没有匹配的软件
+          {t(K.list.empty)}
         </div>
       ) : (
         <div className="flex flex-col gap-2">
@@ -95,42 +109,53 @@ export function AppList({ apps, loading, onMove, onRescan }: Props) {
   );
 }
 
-function RiskBadge({ level }: { level: AppInfo["risk_level"] }) {
+function RiskBadge({ level }: { level: RiskLevel }) {
+  const { t } = useTranslation();
+  const label = t(K.list.risk[level]);
+  const tip = t(K.list.riskTip[level]);
+
   if (level === "high") {
     return (
-      <span className="chip bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-300 shrink-0" title="高风险：移动可能影响系统稳定性">
-        <ShieldError16Regular /> 高风险
+      <span className="chip bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-300 shrink-0" title={tip}>
+        <ShieldError16Regular /> {label}
       </span>
     );
   }
   if (level === "medium") {
     return (
-      <span className="chip bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300 shrink-0" title="中风险：建议先退出软件">
-        <Shield16Regular /> 中风险
+      <span className="chip bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300 shrink-0" title={tip}>
+        <Shield16Regular /> {label}
       </span>
     );
   }
   return (
-    <span className="chip bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 shrink-0" title="低风险：可放心移动">
-      <ShieldCheckmark16Regular /> 低风险
+    <span className="chip bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 shrink-0" title={tip}>
+      <ShieldCheckmark16Regular /> {label}
     </span>
   );
 }
 
 function AppRow({ app, onMove }: { app: AppInfo; onMove: (a: AppInfo) => void }) {
+  const { t } = useTranslation();
+  const { bytes } = useFormatters();
   const letter = app.source_drive.replace(/\\/g, "").replace(":", "");
+  const riskReason = describeReason(t, app.risk_reason);
+  const notMovable = describeReason(t, app.not_movable_reason);
+
   return (
-    <div className="card p-3.5 flex items-center gap-3.5 hover:shadow-glow transition-shadow group">
+    <div className="card p-3.5 flex items-center gap-3.5 hover:shadow-ring transition-shadow group">
       <Avatar name={app.display_name} size={44} icon={app.icon} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="font-medium ink-primary truncate">{app.display_name}</span>
           {app.version && (
-            <span className="text-[11px] ink-soft shrink-0">v{app.version}</span>
+            <span className="text-[11px] ink-soft shrink-0">
+              {t(K.list.version, { version: app.version })}
+            </span>
           )}
           {app.is_already_linked && (
             <span className="chip bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300 shrink-0">
-              <Link16Regular /> 已链接
+              <Link16Regular /> {t(K.list.linked)}
             </span>
           )}
           <RiskBadge level={app.risk_level} />
@@ -142,28 +167,30 @@ function AppRow({ app, onMove }: { app: AppInfo; onMove: (a: AppInfo) => void })
             {app.install_location}
           </code>
         </div>
-        {app.risk_reason && (
-          <div className="text-[11px] ink-soft truncate mt-0.5">{app.risk_reason}</div>
+        {riskReason && (
+          <div className="text-[11px] ink-soft truncate mt-0.5">
+            {riskReason}
+          </div>
         )}
       </div>
       <div className="shrink-0 flex flex-col items-end gap-1.5">
-        <span className="chip bg-panel-soft dark:bg-white/5 ink-secondary">{formatBytes(app.estimated_size_bytes)}</span>
-        <span className="text-[10px] ink-soft">{letter}: 盘</span>
+        <span className="chip bg-panel-soft dark:bg-white/5 ink-secondary">{bytes(app.estimated_size_bytes)}</span>
+        <span className="text-[10px] ink-soft">{t(K.list.driveLabel, { letter })}</span>
       </div>
       <div className="shrink-0">
         {app.is_movable ? (
           <button className="btn-primary" onClick={() => onMove(app)}>
-            移动
+            {t(K.list.move)}
             <ArrowRight16Regular />
           </button>
         ) : (
           <button
             className="btn-subtle opacity-60 cursor-not-allowed"
             disabled
-            title={app.not_movable_reason ?? "不可移动"}
+            title={notMovable ?? t(K.list.notMovableFallback)}
           >
             <Prohibited16Regular />
-            不可移动
+            {t(K.list.notMovable)}
           </button>
         )}
       </div>

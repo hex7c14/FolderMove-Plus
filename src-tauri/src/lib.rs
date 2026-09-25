@@ -3,11 +3,21 @@ mod error;
 mod fs;
 mod icon;
 mod junction;
+mod locale;
 mod manifest;
 mod models;
 mod mover;
 mod proc;
 mod scan;
+mod winutil;
+
+/// 集成测试用的入口（`src-tauri/tests/` 需要从 crate 外部调用内部逻辑）。
+/// 只暴露编排函数，不改变任何正式行为。
+pub mod testkit;
+
+/// 零散的 Win32 工具。`main.rs` 是独立的二进制目标，够不到私有模块，
+/// 所以这里显式公开「有没有管理员权限」这一个函数。
+pub use winutil::is_elevated;
 
 use fs::FolderEntry;
 use models::{AppInfo, DriveInfo, MoveRecord, MoveRequest};
@@ -118,6 +128,15 @@ async fn rename_folder(old_path: String, new_name: String) -> Result<String, Str
 
 pub fn run() {
     tauri::Builder::default()
+        // 窗口一创建就带上「系统语言对应的标题」，不依赖前端是否加载完成。
+        // 前端切换语言时还会再调 setTitle 覆盖它。
+        .setup(|app| {
+            use tauri::Manager;
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.set_title(&locale::window_title());
+            }
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             scan_apps,
             list_drives,

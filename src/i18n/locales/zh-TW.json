@@ -1,0 +1,235 @@
+{
+  "app": {
+    "title": "FolderMove-Plus",
+    "tagline": "軟體搬家"
+  },
+  "nav": {
+    "apps": "軟體清單",
+    "moved": "已移動"
+  },
+  "page": {
+    "apps": {
+      "title": "軟體清單"
+    },
+    "moved": {
+      "title": "已移動"
+    }
+  },
+  "common": {
+    "cancel": "取消",
+    "next": "下一步",
+    "back": "上一步",
+    "retry": "重試",
+    "create": "建立",
+    "loading": "載入中…",
+    "empty": "—"
+  },
+  "settings": {
+    "language": "介面語言",
+    "languageSystem": "跟隨系統"
+  },
+  "units": {
+    "B": "B",
+    "KB": "KB",
+    "MB": "MB",
+    "GB": "GB",
+    "TB": "TB",
+    "PB": "PB"
+  },
+  "sidebar": {
+    "noDrives": "未偵測到磁碟",
+    "drive": "{{letter}} 槽",
+    "freeOfTotal": "剩餘 {{free}} / 共 {{total}}",
+    "movedIn": "已搬入 {{size}}"
+  },
+  "list": {
+    "searchPlaceholder": "搜尋軟體名稱、發行者或路徑…",
+    "filterByRisk": "依風險評級篩選",
+    "riskAll": "全部風險",
+    "riskLowOnly": "僅低風險",
+    "riskMediumOnly": "僅中風險",
+    "riskHighOnly": "僅高風險",
+    "sortBySize": "依大小排序",
+    "sortByName": "依名稱排序",
+    "rescan": "重新掃描",
+    "scanning": "掃描中…",
+    "count_other": "共 {{count}} 個軟體",
+    "empty": "沒有符合的軟體",
+    "version": "v{{version}}",
+    "linked": "已連結",
+    "driveLabel": "{{letter}}: 槽",
+    "move": "移動",
+    "notMovable": "不可移動",
+    "notMovableFallback": "不可移動",
+    "risk": {
+      "high": "高風險",
+      "medium": "中風險",
+      "low": "低風險"
+    },
+    "riskTip": {
+      "high": "高風險：移動可能影響系統穩定性",
+      "medium": "中風險：建議先結束軟體",
+      "low": "低風險：可放心移動"
+    }
+  },
+  "moved": {
+    "emptyTitle": "還沒有移動過軟體",
+    "emptyDesc": "在「軟體清單」中選擇目標磁碟把軟體搬走，移動記錄會出現在這裡，可隨時還原。",
+    "summary_other": "共 {{count}} 個已移動 · 累計釋放 C 槽約 {{size}}",
+    "movedAt": "移動於 {{time}}",
+    "restore": "還原",
+    "restoring": "還原中",
+    "restoreTip": "把軟體還原回原位置"
+  },
+  "dialog": {
+    "unknownPublisher": "未知發行者",
+    "pathOverview": "遷移路徑",
+    "appSize": "軟體大小：",
+    "computing": "計算中",
+    "mode": "模式：",
+    "modeAdvanced": "進階（自選目錄）",
+    "modeDefault": "預設",
+    "step": {
+      "drive": "選槽",
+      "mode": "方式",
+      "pickdir": "選目錄",
+      "confirm": "確認"
+    },
+    "stepDriveTitle": "第 1 步：選擇目標磁碟",
+    "stepDriveEmpty": "沒有偵測到其他可用的固定磁碟，請先接上目標磁碟。",
+    "driveFree": "可用 {{size}}",
+    "stepModeTitle": "第 2 步：選擇方式",
+    "modeDefaultName": "預設方式",
+    "modeDefaultDesc": "在目標磁碟根目錄建立 FolderMove-Plus 資料夾，軟體直接搬入其中。一步到位，99% 的情況都夠用。",
+    "modeAdvancedName": "進階方式",
+    "modeAdvancedDesc": "開啟內嵌檔案管理員，手動選擇要存放的具體目錄。支援新增資料夾、重新命名，滿足精細的目錄組織需求。",
+    "stepPickdirTitle": "第 3 步：選擇存放目錄",
+    "pickdirHint": "選取後將在該目錄下建立 {{name}}",
+    "goUp": "向上一層",
+    "newFolder": "新增資料夾",
+    "loadError": "無法讀取目錄：",
+    "noSubfolders": "該目錄沒有子資料夾",
+    "noSubfoldersHint": "可以直接把「目前目錄」作為存放位置，或點上方「新增資料夾」",
+    "selected": "已選取",
+    "rename": "重新命名",
+    "openFolder": "開啟資料夾",
+    "highRiskTitle": "高風險警告：",
+    "highRiskFallback": "此目錄涉及系統關鍵路徑，移動後可能導致系統或軟體異常。",
+    "highRiskSuffix": "請務必先建立還原點並完全結束相關軟體。",
+    "spaceEnough": "空間充足，移動後預計釋放 {{size}}",
+    "spaceNotEnough": "目標磁碟可用空間不足（{{free}} < {{size}}）",
+    "checkingProcs": "正在偵測殘留程序…",
+    "killingProcs": "正在結束殘留程序…",
+    "procsFound_other": "偵測到 {{count}} 個殘留程序仍佔用該目錄",
+    "procsFoundHint": "若您已確認關閉軟體，這些可能是未完全結束的殘留程序。",
+    "procsKillFailed": "未能結束：",
+    "procsKillAndContinue": "結束殘留程序並繼續",
+    "procsRecheck": "重新偵測",
+    "procsNone": "未偵測到殘留程序，可以安全移動",
+    "procsPendingTip": "請先處理殘留程序",
+    "startMove": "開始搬家",
+    "openFileManager": "開啟檔案管理員",
+    "processing": {
+      "checking": "偵測程序",
+      "killing": "結束程序",
+      "moving": "移動中"
+    }
+  },
+  "progress": {
+    "done": "操作完成",
+    "doneHint": "可以繼續操作其他軟體",
+    "runningHint": "請勿關閉軟體或斷電",
+    "fallbackPhase": "處理中",
+    "phase": {
+      "computing": "計算佔用",
+      "copying": "複製檔案",
+      "verifying": "驗證完整性",
+      "linking": "建立連結",
+      "cleaning": "清理原檔案",
+      "done": "完成"
+    }
+  },
+  "toast": {
+    "scanFailed": "掃描失敗：{{error}}",
+    "moved": "已移動「{{name}}」，釋放 {{size}}",
+    "restored": "已還原「{{name}}」",
+    "procCheckFailed": "程序偵測失敗：{{error}}",
+    "procKillFailed": "結束程序失敗：{{error}}",
+    "procKillPartial": "部分程序無法結束：{{list}}",
+    "procEntry": "PID {{pid}}（{{reason}}）",
+    "procEntrySeparator": "、",
+    "pidListSeparator": "、"
+  },
+  "error": {
+    "pathNotFound": "路徑不存在：{{path}}",
+    "pathEmpty": "路徑為空",
+    "pathNotAbsolute": "路徑非絕對路徑：{{path}}",
+    "sourceDriveUnknown": "無法辨識來源磁碟",
+    "targetDriveUnknown": "無法辨識目標磁碟",
+    "sameDrive": "目標路徑與來源路徑位於同一磁碟，無需移動",
+    "insufficientSpace": "目標磁碟可用空間不足：需要 {{needed}} 位元組，可用 {{available}} 位元組",
+    "alreadyLinked": "來源目錄目前已是連結，無法再次移動：{{path}}",
+    "copyFailed": "複製階段失敗（robocopy 結束碼 {{code}}）",
+    "copyFailedDetail": {
+      "robocopySpawn": "啟動 robocopy 失敗：{{error}}",
+      "robocopyExitCode": "robocopy 結束碼 {{code}}（≥8 表示有檔案失敗，可能被佔用，請先關閉該軟體）",
+      "robocopyWait": "等待 robocopy 結束失敗：{{error}}"
+    },
+    "verifyFailed": "複製完成但驗證失敗：目標 {{size}} 位元組，來源約 {{expected}} 位元組，複製不完整",
+    "renameFailed": "重新命名來源目錄失敗，可能軟體正在執行或檔案被佔用：{{detail}}",
+    "linkFailed": "建立連結失敗：{{detail}}",
+    "linkDetail": {
+      "createDir": "建立目錄失敗：{{error}}",
+      "openDir": "開啟目錄失敗：{{error}}",
+      "setReparsePoint": "FSCTL_SET_REPARSE_POINT 失敗：{{error}}",
+      "removeDir": "RemoveDirectoryW 失敗：{{error}}",
+      "renameLink": "重新命名連結失敗：{{error}}",
+      "verifyFailed": "junction 驗證失敗"
+    },
+    "recordNotFound": "找不到 id 為 {{id}} 的移動記錄",
+    "restoreNotLink": "原路徑 {{path}} 不是連結，可能已被手動處理，無法自動還原",
+    "targetEmpty": "目標位置的副本是空的，已放棄還原以免把軟體刪掉：{{path}}。請檢查該目錄，或手動把檔案複製回原位置。",
+    "cleanupFailed": "還原完成，但目標位置的副本沒能刪掉：{{path}}（{{detail}}）。可能是目錄正被其他程式佔用，關掉檔案總管或防毒軟體後手動刪除即可。",
+    "windows": "Windows API 呼叫失敗：{{detail}}",
+    "windowsDetail": {
+      "openProcess": "OpenProcess({{pid}}) 失敗：{{error}}",
+      "terminateProcess": "TerminateProcess({{pid}}) 失敗：{{error}}"
+    },
+    "io": "IO 錯誤：{{detail}}",
+    "json": "JSON 序列化錯誤：{{detail}}",
+    "other": "{{detail}}",
+    "localAppDataMissing": "無法取得 LOCALAPPDATA 環境變數",
+    "pathMustBeAbsolute": "路徑必須為絕對路徑：{{path}}",
+    "parentMustBeAbsolute": "父目錄必須為絕對路徑：{{path}}",
+    "oldPathMustBeAbsolute": "原路徑必須為絕對路徑：{{path}}",
+    "notAFolder": "不是資料夾：{{path}}",
+    "noParentDir": "非法路徑（無父目錄）：{{path}}",
+    "folderNameEmpty": "資料夾名稱不能為空",
+    "newFolderNameEmpty": "新資料夾名稱不能為空",
+    "folderExists": "資料夾已存在：{{path}}",
+    "folderNameExists": "同名資料夾已存在：{{path}}"
+  },
+  "reason": {
+    "dirMissing": "目錄不存在或無法存取",
+    "dirInaccessible": "目錄無法存取",
+    "alreadyLinked": "該目錄已是連結，可能之前已移動過",
+    "alreadyJunction": "已是 Junction 連結，無需再次移動",
+    "systemCritical": "系統關鍵目錄，移動後可能影響系統穩定性，強烈建議謹慎",
+    "driverOrRuntime": "驅動或執行階段程式庫，被系統或其他軟體相依，移動後可能導致相依軟體異常",
+    "systemInstallDir": "位於系統級安裝目錄，移動需管理員權限，建議先結束軟體",
+    "userDir": "位於使用者目錄，移動風險較低",
+    "normalDir": "一般安裝目錄"
+  },
+  "progressMessage": {
+    "computingSize": "正在計算佔用大小…",
+    "copyingTo": "正在複製到 {{path}}",
+    "copying": "複製中…",
+    "copyingVerify": "複製完成，驗證中…",
+    "linking": "正在建立連結…",
+    "cleaningOriginal": "正在清理原檔案…",
+    "done": "完成",
+    "restoringTo": "回遷到 {{path}}",
+    "cleaningTarget": "清理目標磁碟副本…",
+    "restoreDone": "還原完成"
+  }
+}

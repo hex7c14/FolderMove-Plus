@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import {
   Dismiss20Regular,
   ArrowRight20Regular,
@@ -20,8 +20,11 @@ import {
 } from "@fluentui/react-icons";
 import type { AppInfo, DriveInfo, FolderEntry, MoveRecord, MoveRequest, ProcInfo } from "../types";
 import { Avatar } from "./Avatar";
-import { formatBytes, driveDisplay } from "../lib/format";
+import { driveDisplay } from "../lib/format";
+import { useFormatters } from "../lib/useFormatters";
+import { describeError, describeReason } from "../lib/errors";
 import { api } from "../lib/api";
+import { K, useTranslation } from "../i18n";
 
 interface Props {
   app: AppInfo;
@@ -40,9 +43,20 @@ interface Props {
 type Step = "drive" | "mode" | "pickdir" | "confirm";
 type Mode = "default" | "advanced" | null;
 
+/**
+ * 默认模式在目标盘创建的文件夹名。
+ * 故意**不翻译**：这是一个真实目录名，翻成中文路径（D:\软件搬家）对
+ * 英文用户和在命令行里找文件的人都不友好，也和 get_default_target 保持一致。
+ */
 const DEFAULT_SUBFOLDER = "FolderMove-Plus";
 
+/** 「新建文件夹」时预填的名字，同样是真实目录名，不翻译 */
+const DEFAULT_NEW_FOLDER_NAME = "New folder";
+
 export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
+  const { t } = useTranslation();
+  const { bytes } = useFormatters();
+
   const candidates = useMemo(
     () =>
       drives.filter(
@@ -59,8 +73,6 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
     candidates[0]?.letter ?? ""
   );
   const [mode, setMode] = useState<Mode>(null);
-  // "默认"模式下的子文件夹名
-  const [subfolder, setSubfolder] = useState(DEFAULT_SUBFOLDER);
   // "高级"模式下用户选择的存放目录 (完整绝对路径)
   const [selectedPath, setSelectedPath] = useState<string>("");
 
@@ -69,10 +81,11 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
   const [browsePath, setBrowsePath] = useState<string>("");
   const [folders, setFolders] = useState<FolderEntry[]>([]);
   const [loadingFolders, setLoadingFolders] = useState(false);
-  const [fsError, setFsError] = useState<string | null>(null);
+  // 后端错误保持原始值，渲染时再按当前语言翻译（切语言也能跟着变）
+  const [fsError, setFsError] = useState<unknown>(null);
   // 新建文件夹弹框状态：
   const [creating, setCreating] = useState(false);
-  const [creatingName, setCreatingName] = useState("新建文件夹");
+  const [creatingName, setCreatingName] = useState("");
   // 重命名状态：
   const [renamingPath, setRenamingPath] = useState<string | null>(null);
   const [renamingName, setRenamingName] = useState("");
@@ -82,16 +95,26 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
   const [size, setSize] = useState<number>(app.estimated_size_bytes);
   const [computing, setComputing] = useState(app.estimated_size_bytes === 0);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const [procs, setProcs] = useState<ProcInfo[] | null>(null);
   const [procStage, setProcStage] = useState<"idle" | "checking" | "killing">("idle");
   const [killFailed, setKillFailed] = useState<{ pid: number; reason: string }[]>([]);
 
   const selectedDrive = candidates.find((d) => d.letter === driveLetterSel) ?? candidates[0];
 
-  // ====== 默认模式下自动计算 targetRoot ======
+  /**
+   * 新建文件夹时输入框里的默认名。
+   *
+   * 用不翻译的 "New folder" 而不是 t(K.dialog.newFolder)：
+   * 那是个**真实会落盘的目录名**。「新建文件夹」逐字翻译成英文会得到
+   * "New folder"，而中文界面下又变成「新建文件夹」——同一台机器换语言
+   * 建出来的目录名就不一样了，很难排查。固定成一个词更省事。
+   */
+  const newFolderDefaultName = () => DEFAULT_NEW_FOLDER_NAME;
+
+  // ====== 默认模式下自动计算 targetRoot（固定落在 FolderMove-Plus）======
   const defaultTargetRoot = selectedDrive
-    ? `${selectedDrive.letter}${subfolder}`
+    ? `${selectedDrive.letter}${DEFAULT_SUBFOLDER}`
     : "";
   // ====== 综合 targetRoot：根据模式决定 ======
   const targetRoot =
@@ -127,7 +150,6 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
     setError(null);
     setMode(null);
     setSelectedPath("");
-    setSubfolder(DEFAULT_SUBFOLDER);
     setStep("mode");
   };
 
@@ -161,7 +183,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
       })
       .catch((e) => {
         setFolders([]);
-        setFsError(String(e));
+        setFsError(e);
       })
       .finally(() => setLoadingFolders(false));
   };
@@ -210,14 +232,10 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
       setBrowsePath(parentPath);
     }
   };
-  const chooseCurrentDir = () => {
-    setSelectedPath(browsePath);
-    setError(null);
-    setStep("confirm");
-  };
   // 从 pickdir 步骤下一步：**不覆盖用户已选的 selectedPath**
   // - 如果用户已手动点击/新建选中了目录（selectedPath 有值），直接进 confirm
   // - 如果用户没有点选但点了下一步（说明想把"当前浏览目录"作为目标），才套用 browsePath
+  //   —— 原来底部的「选当前目录」按钮去掉了，这个兜底行为正好顶替它的作用
   const goFromPickdir = () => {
     if (!selectedPath) {
       setSelectedPath(browsePath);
@@ -229,7 +247,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
   // ====== 新建文件夹 ======
   const startCreating = () => {
     setCreating(true);
-    setCreatingName("新建文件夹");
+    setCreatingName(newFolderDefaultName());
     // 延迟聚焦 input
     setTimeout(() => {
       const input = document.getElementById("create-folder-input") as HTMLInputElement | null;
@@ -241,7 +259,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
   };
   const cancelCreating = () => {
     setCreating(false);
-    setCreatingName("新建文件夹");
+    setCreatingName("");
   };
   const commitCreate = async () => {
     if (!browsePath) return;
@@ -253,10 +271,10 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
       loadFolders(browsePath);
       setSelectedPath(newPath);
     } catch (e) {
-      setFsError(String(e));
+      setFsError(e);
     } finally {
       setCreating(false);
-      setCreatingName("新建文件夹");
+      setCreatingName("");
     }
   };
 
@@ -285,7 +303,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
       }
       loadFolders(browsePath);
     } catch (e) {
-      setFsError(String(e));
+      setFsError(e);
     } finally {
       cancelRenaming();
     }
@@ -304,7 +322,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
       });
       onDone();
     } catch (e) {
-      setError(String(e));
+      setError(e);
     } finally {
       setSubmitting(false);
     }
@@ -326,7 +344,10 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
       }
     } catch (e) {
       setProcStage("idle");
-      setError(`进程检测失败：${e}`);
+      setError({
+        code: "other",
+        params: { detail: t(K.toast.procCheckFailed, { error: describeError(t, e) }) },
+      });
     }
   };
 
@@ -344,13 +365,20 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
       if (remain.length === 0) {
         await doMove();
       } else if (res.failed.length > 0) {
-        setError(
-          `部分进程无法结束：${res.failed.map((f) => `PID ${f.pid} (${f.reason})`).join("、")}`
-        );
+        const list = res.failed
+          .map((f) => t(K.toast.procEntry, { pid: f.pid, reason: f.reason }))
+          .join(t(K.toast.pidListSeparator));
+        setError({
+          code: "other",
+          params: { detail: t(K.toast.procKillPartial, { list }) },
+        });
       }
     } catch (e) {
       setProcStage("idle");
-      setError(`结束进程失败：${e}`);
+      setError({
+        code: "other",
+        params: { detail: t(K.toast.procKillFailed, { error: describeError(t, e) }) },
+      });
     }
   };
 
@@ -363,7 +391,10 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
       setProcStage("idle");
     } catch (e) {
       setProcStage("idle");
-      setError(`进程检测失败：${e}`);
+      setError({
+        code: "other",
+        params: { detail: t(K.toast.procCheckFailed, { error: describeError(t, e) }) },
+      });
     }
   };
 
@@ -392,6 +423,40 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
     willFit &&
     !(procs && procs.length > 0);
 
+  const errorText = error ? describeError(t, error) : null;
+  const fsErrorText = fsError ? describeError(t, fsError) : null;
+  const riskReason = describeReason(t, app.risk_reason);
+
+  /** 底部「开始搬家」按钮的文案：随进程检测阶段变化 */
+  const submitButtonLabel = () => {
+    if (procStage === "checking") {
+      return (
+        <>
+          <SpinnerIos20Regular className="animate-spin" /> {t(K.dialog.processing.checking)}
+        </>
+      );
+    }
+    if (procStage === "killing") {
+      return (
+        <>
+          <SpinnerIos20Regular className="animate-spin" /> {t(K.dialog.processing.killing)}
+        </>
+      );
+    }
+    if (submitting) {
+      return (
+        <>
+          <SpinnerIos20Regular className="animate-spin" /> {t(K.dialog.processing.moving)}
+        </>
+      );
+    }
+    return (
+      <>
+        {t(K.dialog.startMove)} <ArrowRight20Regular />
+      </>
+    );
+  };
+
   return (
     <div
       className="fixed inset-0 z-40 flex items-center justify-center backdrop animate-fade-in"
@@ -409,10 +474,9 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
           <div className="flex-1 min-w-0">
             <div className="font-semibold ink-primary truncate">
               {app.display_name}
-              <span className="ml-2 text-xs font-normal ink-soft">· 软件搬家</span>
             </div>
             <div className="text-xs ink-soft truncate">
-              {app.publisher ?? "未知发布者"}
+              {app.publisher ?? t(K.dialog.unknownPublisher)}
             </div>
             {/* 步骤条 */}
             <StepBar step={step} mode={mode} />
@@ -430,30 +494,30 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
         {step !== "drive" && (
           <div className="rounded-lg bg-panel-soft dark:bg-white/5 p-3 mb-5">
             <div className="text-[11px] uppercase tracking-wide ink-soft mb-1">
-              迁移路径
+              {t(K.dialog.pathOverview)}
             </div>
             <div className="flex items-center gap-2 text-sm flex-wrap">
               <code className="ink-secondary">{app.install_location}</code>
               <ArrowRight20Regular className="text-brand-500 dark:text-brand-400" />
               <code className="text-brand-700 dark:text-brand-400 font-medium">
-                {newPath || "—"}
+                {newPath || t(K.common.empty)}
               </code>
             </div>
             <div className="mt-2 flex items-center gap-3 text-xs">
               <span className="ink-soft">
-                软件大小：
+                {t(K.dialog.appSize)}
                 {computing ? (
                   <span className="ink-soft inline-flex items-center gap-1">
-                    <SpinnerIos20Regular className="animate-spin" /> 计算中
+                    <SpinnerIos20Regular className="animate-spin" /> {t(K.dialog.computing)}
                   </span>
                 ) : (
-                  <span className="font-medium ink-primary">{formatBytes(size)}</span>
+                  <span className="font-medium ink-primary">{bytes(size)}</span>
                 )}
               </span>
               <span className="ink-soft">
-                模式：
+                {t(K.dialog.mode)}
                 <span className="font-medium ink-primary">
-                  {mode === "advanced" ? "高级（自选目录）" : "默认"}
+                  {mode === "advanced" ? t(K.dialog.modeAdvanced) : t(K.dialog.modeDefault)}
                 </span>
               </span>
             </div>
@@ -463,10 +527,10 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
         {/* ================ Step 1：选择目标盘 ================ */}
         {step === "drive" && (
           <>
-            <div className="mb-2 text-sm font-medium ink-primary">第 1 步：选择目标盘</div>
+            <div className="mb-2 text-sm font-medium ink-primary">{t(K.dialog.stepDriveTitle)}</div>
             {candidates.length === 0 ? (
               <div className="card p-4 text-sm text-amber-700 bg-amber-50 border-amber-200 mb-4 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30">
-                没有检测到其他可用的固定盘，请先接入目标磁盘。
+                {t(K.dialog.stepDriveEmpty)}
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-2 mb-4">
@@ -502,7 +566,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
                         />
                       </div>
                       <div className="mt-1 text-[11px] ink-soft">
-                        可用 {formatBytes(d.free_bytes)}
+                        {t(K.dialog.driveFree, { size: bytes(d.free_bytes) })}
                       </div>
                     </button>
                   );
@@ -515,7 +579,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
         {/* ================ Step 2：默认 / 高级 ================ */}
         {step === "mode" && (
           <>
-            <div className="mb-2 text-sm font-medium ink-primary">第 2 步：选择方式</div>
+            <div className="mb-2 text-sm font-medium ink-primary">{t(K.dialog.stepModeTitle)}</div>
             <div className="grid grid-cols-2 gap-3 mb-4">
               <button
                 onClick={() => pickMode("default")}
@@ -527,11 +591,10 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
               >
                 <div className="flex items-center gap-2 mb-1.5">
                   <PlugDisconnected20Regular className="text-brand-600 dark:text-brand-400" />
-                  <span className="font-semibold ink-primary">默认方式</span>
+                  <span className="font-semibold ink-primary">{t(K.dialog.modeDefaultName)}</span>
                 </div>
                 <div className="text-xs ink-soft leading-relaxed">
-                  在目标盘根创建 <code className="font-mono">FolderMove-Plus</code> 文件夹，
-                  软件直接搬入其中。一步到位，99% 情况都够用。
+                  {t(K.dialog.modeDefaultDesc)}
                 </div>
               </button>
 
@@ -545,37 +608,13 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
               >
                 <div className="flex items-center gap-2 mb-1.5">
                   <Settings20Regular className="text-brand-600 dark:text-brand-400" />
-                  <span className="font-semibold ink-primary">高级方式</span>
+                  <span className="font-semibold ink-primary">{t(K.dialog.modeAdvancedName)}</span>
                 </div>
                 <div className="text-xs ink-soft leading-relaxed">
-                  打开内嵌文件管理器，手动选择要存放的具体目录。
-                  支持新建文件夹、重命名，满足精细的目录组织需求。
+                  {t(K.dialog.modeAdvancedDesc)}
                 </div>
               </button>
             </div>
-
-            {mode === "default" && (
-              <div className="mb-5">
-                <label className="text-sm font-medium ink-primary mb-1.5 block">
-                  存放文件夹名（可选）
-                </label>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm ink-soft">{selectedDrive?.letter}</span>
-                  <input
-                    className="field"
-                    value={subfolder}
-                    onChange={(e) =>
-                      setSubfolder(e.target.value.replace(/[\\/:*?"<>|]/g, ""))
-                    }
-                    placeholder={DEFAULT_SUBFOLDER}
-                    disabled={busy}
-                  />
-                </div>
-                <div className="mt-1 text-[11px] ink-soft">
-                  软件会搬入：<code className="font-mono">{defaultTargetRoot}\{basename}</code>
-                </div>
-              </div>
-            )}
           </>
         )}
 
@@ -583,9 +622,9 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
         {step === "pickdir" && (
           <>
             <div className="mb-2 text-sm font-medium ink-primary flex items-center gap-2">
-              第 3 步：选择存放目录
+              {t(K.dialog.stepPickdirTitle)}
               <span className="ml-auto text-[11px] font-normal ink-soft">
-                选中后将在该目录下创建 <code className="font-mono">{basename}</code>
+                {t(K.dialog.pickdirHint, { name: basename })}
               </span>
             </div>
 
@@ -595,7 +634,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
                 className="btn-ghost !px-2 !py-1.5 disabled:opacity-40"
                 onClick={goBack}
                 disabled={!parentPath}
-                title="向上一级"
+                title={t(K.dialog.goUp)}
               >
                 <ArrowLeft20Regular />
               </button>
@@ -627,10 +666,10 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
                 className="btn-primary !px-2.5 !py-1.5"
                 onClick={startCreating}
                 disabled={loadingFolders || !browsePath || creating}
-                title="新建文件夹"
+                title={t(K.dialog.newFolder)}
               >
                 <Add20Regular />
-                新建文件夹
+                {t(K.dialog.newFolder)}
               </button>
             </div>
 
@@ -652,10 +691,10 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
                 />
                 <button className="btn-primary !py-1.5 !px-3" onClick={() => void commitCreate()}>
                   <Save20Regular />
-                  创建
+                  {t(K.common.create)}
                 </button>
                 <button className="btn-ghost !py-1.5" onClick={cancelCreating}>
-                  取消
+                  {t(K.common.cancel)}
                 </button>
               </div>
             )}
@@ -670,13 +709,13 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
             >
               {loadingFolders ? (
                 <div className="h-full min-h-[260px] flex items-center justify-center gap-2 ink-soft text-sm">
-                  <SpinnerIos20Regular className="animate-spin" /> 正在加载文件夹…
+                  <SpinnerIos20Regular className="animate-spin" /> {t(K.common.loading)}
                 </div>
-              ) : fsError ? (
+              ) : fsErrorText ? (
                 <div className="h-full min-h-[260px] flex flex-col items-center justify-center gap-2 text-sm text-amber-700 dark:text-amber-300 px-6 text-center">
                   <Warning20Filled />
                   <div>
-                    无法读取目录：<span className="break-all">{fsError}</span>
+                    {t(K.dialog.loadError)}<span className="break-all">{fsErrorText}</span>
                   </div>
                   <button
                     className="btn-ghost !py-1.5 mt-1"
@@ -686,15 +725,15 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
                     }}
                   >
                     <ArrowClockwise20Regular />
-                    重试
+                    {t(K.common.retry)}
                   </button>
                 </div>
               ) : folders.length === 0 ? (
                 <div className="h-full min-h-[260px] flex flex-col items-center justify-center gap-1 ink-soft text-sm">
                   <Folder20Regular className="w-8 h-8 opacity-50" />
-                  <div>该目录没有子文件夹</div>
+                  <div>{t(K.dialog.noSubfolders)}</div>
                   <div className="text-xs">
-                    可以直接把"当前目录"作为存放位置，或点上方"新建文件夹"
+                    {t(K.dialog.noSubfoldersHint)}
                   </div>
                 </div>
               ) : (
@@ -762,7 +801,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
                           <>
                             {selected && (
                               <span className="text-[11px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
-                                已选中
+                                {t(K.dialog.selected)}
                               </span>
                             )}
                             <button
@@ -771,7 +810,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
                                 e.stopPropagation();
                                 startRenaming(f);
                               }}
-                              title="重命名"
+                              title={t(K.dialog.rename)}
                             >
                               <Edit20Regular className="w-4 h-4" />
                             </button>
@@ -781,7 +820,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
                                 e.stopPropagation();
                                 enterFolder(f);
                               }}
-                              title="打开文件夹"
+                              title={t(K.dialog.openFolder)}
                             >
                               <ChevronRight20Regular className="w-4 h-4" />
                             </button>
@@ -794,52 +833,15 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
               )}
             </div>
 
-            {fsError && (
+            {fsErrorText && (
               <div className="mt-2 text-xs text-amber-700 dark:text-amber-300">
-                {fsError}
+                {fsErrorText}
               </div>
             )}
-
-            {/* 已选择的路径提示 */}
-            <div className="mt-3 rounded-lg bg-panel-soft dark:bg-white/5 p-2.5 flex items-center gap-2 text-sm">
-              <CheckmarkCircle20Filled
-                className={
-                  selectedPath
-                    ? "text-emerald-600 dark:text-emerald-400"
-                    : "ink-soft opacity-40"
-                }
-              />
-              <div className="flex-1 min-w-0">
-                {selectedPath ? (
-                  <>
-                    <div className="text-xs ink-soft">选择的目录</div>
-                    <code className="ink-primary font-medium break-all">{selectedPath}</code>
-                    <div className="text-[11px] ink-soft mt-0.5">
-                      最终路径：<span className="font-medium">{newPath}</span>
-                    </div>
-                  </>
-                ) : (
-                  <div className="ink-soft text-xs">
-                    未选择。双击文件夹进入浏览，点击选中要存放的位置，再点"下一步"继续。
-                  </div>
-                )}
-              </div>
-              <button
-                className="btn-ghost !py-1.5"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  chooseCurrentDir();
-                }}
-              >
-                选"当前目录"
-              </button>
-            </div>
           </>
         )}
 
         {/* ================ Step 4：确认页 & 提交 / 错误区 ================ */}
-        {(step === "confirm" || step === "mode") && mode === "default" ? null : null}
-
         {step === "confirm" && (
           <>
             {/* 高风险提示 */}
@@ -847,10 +849,9 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
               <div className="rounded-lg p-3 mb-4 bg-red-50 text-red-700 border border-red-200 text-sm flex gap-2 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/30">
                 <ShieldError20Regular className="shrink-0 mt-0.5" />
                 <span>
-                  <strong>高风险警告：</strong>
-                  {app.risk_reason ??
-                    "此目录涉及系统关键路径，移动后可能导致系统或软件异常。"}
-                  请务必先创建还原点并完全退出相关软件。
+                  <strong>{t(K.dialog.highRiskTitle)}</strong>
+                  {riskReason ?? t(K.dialog.highRiskFallback)}
+                  {t(K.dialog.highRiskSuffix)}
                 </span>
               </div>
             )}
@@ -867,8 +868,8 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
                 {willFit ? <CheckmarkCircle20Filled /> : <Warning20Filled />}
                 <span>
                   {willFit
-                    ? `空间充足，移动后预计释放 ${formatBytes(size)}`
-                    : `目标盘可用空间不足（${formatBytes(free)} < ${formatBytes(size)}）`}
+                    ? t(K.dialog.spaceEnough, { size: bytes(size) })
+                    : t(K.dialog.spaceNotEnough, { free: bytes(free), size: bytes(size) })}
                 </span>
               </div>
             )}
@@ -877,14 +878,14 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
             {procStage === "checking" && (
               <div className="rounded-lg p-3 mb-4 bg-panel-soft dark:bg-white/5 ink-secondary border border-soft text-sm flex items-center gap-2">
                 <SpinnerIos20Regular className="animate-spin" />
-                正在检测残留进程…
+                {t(K.dialog.checkingProcs)}
               </div>
             )}
 
             {procStage === "killing" && (
               <div className="rounded-lg p-3 mb-4 bg-amber-50 text-amber-700 border border-amber-200 text-sm flex items-center gap-2 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30">
                 <SpinnerIos20Regular className="animate-spin" />
-                正在结束残留进程…
+                {t(K.dialog.killingProcs)}
               </div>
             )}
 
@@ -894,10 +895,10 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
                   <WarningShield20Filled className="shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <div className="font-medium">
-                      检测到 {procs.length} 个残留进程仍占用该目录
+                      {t(K.dialog.procsFound, { count: procs.length })}
                     </div>
                     <div className="text-xs mt-0.5 opacity-90">
-                      若您已确认关闭软件，这些可能是未完全退出的残留进程。
+                      {t(K.dialog.procsFoundHint)}
                     </div>
                   </div>
                 </div>
@@ -922,7 +923,10 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
                 </ul>
                 {killFailed.length > 0 && (
                   <div className="mt-2 text-xs text-red-700 dark:text-red-300">
-                    未能结束：{killFailed.map((f) => `PID ${f.pid}`).join("、")}
+                    {t(K.dialog.procsKillFailed)}
+                    {killFailed
+                      .map((f) => t(K.toast.procEntry, { pid: f.pid, reason: f.reason }))
+                      .join(t(K.toast.pidListSeparator))}
                   </div>
                 )}
                 <div className="mt-2.5 flex items-center gap-2">
@@ -932,7 +936,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
                     disabled={busy}
                   >
                     <WarningShield20Filled />
-                    结束残留进程并继续
+                    {t(K.dialog.procsKillAndContinue)}
                   </button>
                   <button
                     className="btn-ghost !py-1.5 !text-xs"
@@ -940,7 +944,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
                     disabled={busy}
                   >
                     <ArrowClockwise20Regular />
-                    重新检测
+                    {t(K.dialog.procsRecheck)}
                   </button>
                 </div>
               </div>
@@ -949,35 +953,34 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
             {procs && procs.length === 0 && procStage === "idle" && !submitting && (
               <div className="rounded-lg p-3 mb-4 bg-emerald-50 text-emerald-700 border border-emerald-200 text-sm flex items-center gap-2 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30">
                 <CheckmarkCircle20Filled />
-                未检测到残留进程，可以安全移动
+                {t(K.dialog.procsNone)}
               </div>
             )}
 
-            {error && (
+            {errorText && (
               <div className="rounded-lg p-3 mb-4 bg-red-50 text-red-700 border border-red-200 text-sm flex gap-2 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/30">
                 <Warning20Filled className="shrink-0 mt-0.5" />
-                <span className="break-all">{error}</span>
+                <span className="break-all">{errorText}</span>
               </div>
             )}
           </>
         )}
 
         {/* ========== 底部按钮条 ========== */}
+        {/* 按钮统一靠右：以前左边有个「通过 NTFS Junction 迁移」的说明，已去掉，
+            用 ml-auto 占位保持右对齐 */}
         <div className="flex items-center gap-2 pt-3 border-t border-soft -mx-6 -mb-6 px-6 py-3 mt-1">
-          <Folder20Regular className="ink-soft" />
-          <span className="text-xs ink-soft mr-auto">
-            通过 NTFS Junction 迁移，路径不变，软件照常运行
-          </span>
+          <div className="mr-auto" />
 
           {step !== "drive" && (
             <button className="btn-ghost" onClick={goBackStep} disabled={busy}>
               <ArrowLeft20Regular />
-              上一步
+              {t(K.common.back)}
             </button>
           )}
 
           <button className="btn-ghost" onClick={onClose} disabled={busy}>
-            取消
+            {t(K.common.cancel)}
           </button>
 
           {/* 各步骤下一步 / 提交 */}
@@ -987,7 +990,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
               onClick={goFromDrive}
               disabled={!selectedDrive || candidates.length === 0}
             >
-              下一步 <ArrowRight20Regular />
+              {t(K.common.next)} <ArrowRight20Regular />
             </button>
           )}
 
@@ -996,25 +999,9 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
               className="btn-primary"
               onClick={submit}
               disabled={busy || !willFit || !!(procs && procs.length > 0)}
-              title={procs && procs.length > 0 ? "请先处理残留进程" : undefined}
+              title={procs && procs.length > 0 ? t(K.dialog.procsPendingTip) : undefined}
             >
-              {procStage === "checking" ? (
-                <>
-                  <SpinnerIos20Regular className="animate-spin" /> 检测进程
-                </>
-              ) : procStage === "killing" ? (
-                <>
-                  <SpinnerIos20Regular className="animate-spin" /> 结束进程
-                </>
-              ) : submitting ? (
-                <>
-                  <SpinnerIos20Regular className="animate-spin" /> 移动中
-                </>
-              ) : (
-                <>
-                  开始搬家 <ArrowRight20Regular />
-                </>
-              )}
+              {submitButtonLabel()}
             </button>
           )}
 
@@ -1024,7 +1011,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
               onClick={() => pickMode("advanced") /* 再次触发以确认选择 */}
               disabled={!selectedDrive}
             >
-              打开文件管理器 <ArrowRight20Regular />
+              {t(K.dialog.openFileManager)} <ArrowRight20Regular />
             </button>
           )}
 
@@ -1034,7 +1021,7 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
               onClick={goFromPickdir}
               disabled={busy || !browsePath}
             >
-              下一步 <ArrowRight20Regular />
+              {t(K.common.next)} <ArrowRight20Regular />
             </button>
           )}
 
@@ -1043,25 +1030,9 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
               className="btn-primary"
               onClick={submit}
               disabled={!canSubmit}
-              title={procs && procs.length > 0 ? "请先处理残留进程" : undefined}
+              title={procs && procs.length > 0 ? t(K.dialog.procsPendingTip) : undefined}
             >
-              {procStage === "checking" ? (
-                <>
-                  <SpinnerIos20Regular className="animate-spin" /> 检测进程
-                </>
-              ) : procStage === "killing" ? (
-                <>
-                  <SpinnerIos20Regular className="animate-spin" /> 结束进程
-                </>
-              ) : submitting ? (
-                <>
-                  <SpinnerIos20Regular className="animate-spin" /> 移动中
-                </>
-              ) : (
-                <>
-                  开始搬家 <ArrowRight20Regular />
-                </>
-              )}
+              {submitButtonLabel()}
             </button>
           )}
         </div>
@@ -1070,56 +1041,59 @@ export function MoveDialog({ app, drives, onSubmit, onDone, onClose }: Props) {
   );
 }
 
-/** 顶部步骤条（视觉上 4 步：选盘 → 方式 → (文件管理器) → 确认） */
-function StepBar({ step, mode }: { step: Step; mode: Mode }) {
-  const items: { key: Step | "pickdir_placeholder"; label: string; optional?: boolean }[] = [
-    { key: "drive", label: "选盘" },
-    { key: "mode", label: "方式" },
-    ...(mode === "advanced"
-      ? ([{ key: "pickdir" as const, label: "选目录" }] as const)
-      : ([{ key: "pickdir_placeholder" as const, label: "选目录", optional: true }] as const)),
-    { key: "confirm", label: "确认" },
+/**
+ * 顶部步骤条（视觉上 4 步：选盘 → 方式 → (文件管理器) → 确认）
+ *
+ * 布局要点：连接线**永远跟着「它右边那一步」一起渲染**。
+ * 之前是分开判断的，占位步（默认方式下没有「选目录」）被隐藏时
+ * 它的连接线却留了下来，导致「选盘 ⇢ 方式」之间凭空多出一条线段，
+ * 而「方式 ⇢ 确认」之间没有，两个间距看起来就不一样宽。
+ * 这里把两者绑成一个不可分割的整体（片段里同时给 key，避免 React 告警）。
+ *
+ * 导出是为了能在 `scripts/verify-stepbar.tsx` 里做渲染级验证。
+ */
+export function StepBar({ step, mode }: { step: Step; mode: Mode }) {
+  const { t } = useTranslation();
+
+  /** 中间那一步：只有高级方式才真正存在，否则是占位步 */
+  const showPickdir = mode === "advanced";
+
+  const items: { key: Step; label: string }[] = [
+    { key: "drive", label: t(K.dialog.step.drive) },
+    { key: "mode", label: t(K.dialog.step.mode) },
+    ...(showPickdir ? [{ key: "pickdir" as const, label: t(K.dialog.step.pickdir) }] : []),
+    { key: "confirm", label: t(K.dialog.step.confirm) },
   ];
 
-  const stepIndex = (k: Step | "pickdir_placeholder") => {
-    // 实际"当前步的逻辑位置"要兼容 "mode" 在默认模式下直接跳到 confirm
-    if (k === "pickdir_placeholder") {
-      // 占位步（默认模式没有这一步）：不算入
-      return 99;
-    }
+  /** 1 = 当前步，2 = 已完成，0 = 还没到 */
+  const stepIndex = (k: Step): 0 | 1 | 2 => {
     if (k === step) return 1;
-    // 已完成的：如果 step 在它之后，就认为它完成
     const order: Step[] = ["drive", "mode", "pickdir", "confirm"];
+    const myIdx = order.indexOf(k);
     const curIdx = order.indexOf(step);
-    const myIdx = order.indexOf(k as Step);
     if (myIdx < 0 || curIdx < 0) return 0;
-    if (myIdx < curIdx) return 2; // 完成
-    return 0; // 未到
+    return myIdx < curIdx ? 2 : 0;
   };
 
   return (
-    <div className="mt-2 flex items-center gap-1">
+    <div className="mt-2 flex items-center gap-1.5">
       {items.map((it, i) => {
         const status = stepIndex(it.key);
-        const isCurrent = it.key === step;
-        const hidden = it.optional && mode !== "advanced";
-        if (hidden) return null;
         return (
-          <>
-            {i > 0 && !(items[i - 1]?.optional && mode !== "advanced") && (
-              <div
-                className={`w-6 h-px ${
-                  status === 2 || isCurrent
-                    ? "bg-brand-400"
-                    : "bg-soft"
+          <Fragment key={it.key}>
+            {/* 连接线：画在每一步的左边，和这一步共存亡 */}
+            {i > 0 && (
+              <span
+                className={`w-5 h-px shrink-0 ${
+                  status === 2 || status === 1 ? "bg-brand-400" : "bg-ink-200 dark:bg-white/15"
                 }`}
               />
             )}
             <div
-              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] ${
+              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] whitespace-nowrap ${
                 status === 2
                   ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"
-                  : isCurrent
+                  : status === 1
                   ? "bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-300 font-medium"
                   : "bg-panel-soft dark:bg-white/5 ink-soft"
               }`}
@@ -1131,7 +1105,7 @@ function StepBar({ step, mode }: { step: Step; mode: Mode }) {
               )}
               {it.label}
             </div>
-          </>
+          </Fragment>
         );
       })}
     </div>

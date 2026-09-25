@@ -341,25 +341,31 @@ fn is_valid_install_dir(path: &str) -> bool {
 }
 
 /// 判断目录是否可移动、是否已是链接，并给出风险评级。
-fn classify(loc: &str, display_name: &str) -> (bool, Option<String>, bool, String, Option<String>) {
+///
+/// 返回的 `reason` / `risk_reason` 是**原因码**（不是句子），
+/// 前端按当前语言翻译成 `reason.*` 里的文案。
+fn classify(
+    loc: &str,
+    display_name: &str,
+) -> (bool, Option<String>, bool, String, Option<String>) {
     let p = Path::new(loc);
     if !p.is_dir() {
         return (
             false,
-            Some("目录不存在或无法访问".into()),
+            Some("dirMissing".into()),
             false,
             "high".into(),
-            Some("目录不可访问".into()),
+            Some("dirInaccessible".into()),
         );
     }
     let is_linked = crate::junction::is_reparse_point(loc);
     if is_linked {
         return (
             false,
-            Some("该目录已是链接，可能之前已移动过".into()),
+            Some("alreadyLinked".into()),
             true,
             "low".into(),
-            Some("已是 Junction 链接，无需再次移动".into()),
+            Some("alreadyJunction".into()),
         );
     }
 
@@ -384,7 +390,7 @@ fn classify(loc: &str, display_name: &str) -> (bool, Option<String>, bool, Strin
                 None,
                 false,
                 "high".into(),
-                Some("系统关键目录，移动后可能影响系统稳定性，强烈建议谨慎".into()),
+                Some("systemCritical".into()),
             );
         }
     }
@@ -396,7 +402,7 @@ fn classify(loc: &str, display_name: &str) -> (bool, Option<String>, bool, Strin
             None,
             false,
             "high".into(),
-            Some("驱动或运行库，被系统或其他软件依赖，移动后可能导致依赖软件异常".into()),
+            Some("driverOrRuntime".into()),
         );
     }
 
@@ -409,7 +415,7 @@ fn classify(loc: &str, display_name: &str) -> (bool, Option<String>, bool, Strin
             None,
             false,
             "medium".into(),
-            Some("位于系统级安装目录，移动需管理员权限，建议先退出软件".into()),
+            Some("systemInstallDir".into()),
         );
     }
 
@@ -421,7 +427,7 @@ fn classify(loc: &str, display_name: &str) -> (bool, Option<String>, bool, Strin
                 None,
                 false,
                 "low".into(),
-                Some("位于用户目录，移动风险较低".into()),
+                Some("userDir".into()),
             );
         }
     }
@@ -432,13 +438,13 @@ fn classify(loc: &str, display_name: &str) -> (bool, Option<String>, bool, Strin
                 None,
                 false,
                 "low".into(),
-                Some("位于用户目录，移动风险较低".into()),
+                Some("userDir".into()),
             );
         }
     }
 
     // 默认中等风险
-    (true, None, false, "medium".into(), Some("常规安装目录".into()))
+    (true, None, false, "medium".into(), Some("normalDir".into()))
 }
 
 /// 判断软件是否为本工具自身（FolderMove-Plus），避免扫描时把自己列出来。

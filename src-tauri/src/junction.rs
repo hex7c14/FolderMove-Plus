@@ -35,8 +35,13 @@ pub fn is_reparse_point(path: &str) -> bool {
 /// 调用前需保证 link_path 不存在。
 pub fn create_junction(link_path: &str, target_path: &str) -> AppResult<()> {
     // 1. 先建空目录
-    std::fs::create_dir(link_path)
-        .map_err(|e| AppError::LinkFailed(format!("创建目录失败: {e}")))?;
+    std::fs::create_dir(link_path).map_err(|e| {
+        AppError::link_failed(
+            e.to_string(),
+            "createDir",
+            serde_json::json!({ "error": e.to_string() }),
+        )
+    })?;
 
     // 2. 以 reparse 语义打开
     let wide = os_wide(link_path);
@@ -51,8 +56,13 @@ pub fn create_junction(link_path: &str, target_path: &str) -> AppResult<()> {
             None,
         )
     };
-    let handle: HANDLE = handle
-        .map_err(|e| AppError::LinkFailed(format!("打开目录失败: {e}")))?;
+    let handle: HANDLE = handle.map_err(|e| {
+        AppError::link_failed(
+            e.message().to_string(),
+            "openDir",
+            serde_json::json!({ "error": e.message().to_string() }),
+        )
+    })?;
 
     // 3. 设置 reparse point
     let buf = build_mount_point_buffer(target_path);
@@ -73,10 +83,12 @@ pub fn create_junction(link_path: &str, target_path: &str) -> AppResult<()> {
     if r.is_err() {
         // 设置失败：删掉刚才建的空目录，避免残留
         let _ = std::fs::remove_dir(link_path);
-        return Err(AppError::LinkFailed(format!(
-            "FSCTL_SET_REPARSE_POINT 失败: {:?}",
-            r.err()
-        )));
+        let detail = format!("{:?}", r.err());
+        return Err(AppError::link_failed(
+            detail.clone(),
+            "setReparsePoint",
+            serde_json::json!({ "error": detail }),
+        ));
     }
     Ok(())
 }
@@ -85,8 +97,13 @@ pub fn create_junction(link_path: &str, target_path: &str) -> AppResult<()> {
 pub fn delete_junction(link_path: &str) -> AppResult<()> {
     let wide = os_wide(link_path);
     unsafe {
-        RemoveDirectoryW(PCWSTR(wide.as_ptr()))
-            .map_err(|e| AppError::LinkFailed(format!("RemoveDirectoryW 失败: {e}")))?;
+        RemoveDirectoryW(PCWSTR(wide.as_ptr())).map_err(|e| {
+            AppError::link_failed(
+                e.message().to_string(),
+                "removeDir",
+                serde_json::json!({ "error": e.message().to_string() }),
+            )
+        })?;
     }
     Ok(())
 }

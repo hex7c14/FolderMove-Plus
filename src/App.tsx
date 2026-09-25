@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { CheckmarkCircle20Filled, Warning20Filled, Dismiss20Regular } from "@fluentui/react-icons";
 import type {
   AppInfo,
@@ -8,7 +9,12 @@ import type {
   ProgressPayload,
 } from "./types";
 import { api, onProgress } from "./lib/api";
-import { Sidebar, type Tab } from "./components/Sidebar";
+import { describeError } from "./lib/errors";
+import { useFormatters } from "./lib/useFormatters";
+import { useWindowTitle } from "./lib/useWindowTitle";
+import { K } from "./i18n";
+import { Sidebar } from "./components/Sidebar";
+import type { Tab } from "./components/Sidebar";
 import { AppList } from "./components/AppList";
 import { MoveDialog } from "./components/MoveDialog";
 import { ProgressOverlay } from "./components/ProgressOverlay";
@@ -19,7 +25,17 @@ interface Toast {
   msg: string;
 }
 
+/** 各标签页的标题对应的文案 key（不加类型标注，保留字面量类型） */
+const TAB_TITLE_KEYS = {
+  apps: K.page.appsTitle,
+  moved: K.page.movedTitle,
+} as const;
+
 export default function App() {
+  const { t } = useTranslation();
+  const { bytes } = useFormatters();
+  // 窗口标题跟随语言（DOM + Tauri 原生窗口）
+  useWindowTitle();
   const [tab, setTab] = useState<Tab>("apps");
   const [apps, setApps] = useState<AppInfo[]>([]);
   const [drives, setDrives] = useState<DriveInfo[]>([]);
@@ -43,11 +59,11 @@ export default function App() {
     try {
       setApps(await api.scanApps());
     } catch (e) {
-      setToast({ type: "error", msg: `扫描失败：${e}` });
+      setToast({ type: "error", msg: t(K.toast.scanFailed, { error: describeError(t, e) }) });
     } finally {
       setLoadingApps(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     refreshDrives();
@@ -74,13 +90,16 @@ export default function App() {
       p.then(async (rec) => {
         setProgress(null);
         await Promise.all([refreshApps(), refreshMoved(), refreshDrives()]);
-        setToast({ type: "success", msg: `已移动「${rec.app_name}」，释放 ${fmt(rec.size_bytes)}` });
+        setToast({
+          type: "success",
+          msg: t(K.toast.moved, { name: rec.app_name, size: bytes(rec.size_bytes) }),
+        });
       }).catch(() => {
         setProgress(null);
       });
       return p;
     },
-    [refreshApps, refreshMoved, refreshDrives]
+    [refreshApps, refreshMoved, refreshDrives, t, bytes]
   );
 
   const startRestore = useCallback(
@@ -90,16 +109,18 @@ export default function App() {
         await api.restoreApp(r.id);
         setProgress(null);
         await Promise.all([refreshApps(), refreshMoved(), refreshDrives()]);
-        setToast({ type: "success", msg: `已还原「${r.app_name}」` });
+        setToast({ type: "success", msg: t(K.toast.restored, { name: r.app_name }) });
       } catch (e) {
         setProgress(null);
-        setToast({ type: "error", msg: String(e) });
+        setToast({ type: "error", msg: describeError(t, e) });
       } finally {
         setBusyRestoreId(null);
       }
     },
-    [refreshApps, refreshMoved, refreshDrives]
+    [refreshApps, refreshMoved, refreshDrives, t]
   );
+
+  const titleKey = TAB_TITLE_KEYS[tab];
 
   return (
     <div className="flex h-full overflow-hidden">
@@ -112,11 +133,8 @@ export default function App() {
       />
 
       <main className="flex-1 flex flex-col min-w-0">
-        <header className="px-7 py-5 border-b border-soft bg-panel-glass flex items-center">
-          <div>
-            <h1 className="text-lg font-semibold ink-primary">{TITLES[tab].t}</h1>
-            <p className="text-xs ink-soft mt-0.5">{TITLES[tab].s}</p>
-          </div>
+        <header className="px-7 py-4 border-b border-soft bg-panel-glass flex items-center">
+          <h1 className="text-lg font-semibold ink-primary">{t(titleKey)}</h1>
         </header>
 
         <div className="flex-1 overflow-auto px-7 py-6">
@@ -175,21 +193,4 @@ export default function App() {
       )}
     </div>
   );
-}
-
-const TITLES: Record<Tab, { t: string; s: string }> = {
-  apps: { t: "软件列表", s: "选择要搬到其他盘的软件" },
-  moved: { t: "已移动", s: "随时还原到原位置" },
-};
-
-function fmt(b: number): string {
-  if (!b) return "0 B";
-  const u = ["B", "KB", "MB", "GB", "TB"];
-  let v = b;
-  let i = 0;
-  while (v >= 1024 && i < u.length - 1) {
-    v /= 1024;
-    i++;
-  }
-  return `${v.toFixed(v >= 10 || i === 0 ? 0 : 1)} ${u[i]}`;
 }

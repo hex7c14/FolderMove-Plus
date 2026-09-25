@@ -23,6 +23,7 @@ Windows 用久了都懂——QQ、微信、Steam、各种 IDE 全往 C 盘塞，
 - 所有操作都记着，哪天想搬回 C 盘了，点一下还原就行
 - 自动申请管理员权限，不用你手动右键"以管理员身份运行"
 - 暗色模式，跟系统走
+- 界面中 / 英 / 繁 / 日四语言，默认跟随系统，也能在侧边栏一键切
 
 ## 怎么用
 
@@ -53,10 +54,24 @@ pnpm tauri build    # 打包，产物在 src-tauri/target/release/
 
 Release 开了 LTO + size opt，打出来的单文件 exe 也就几 MB，没运行时依赖。
 
+## 多语言
+
+界面支持简体中文 / English / 繁體中文 / 日本語，默认跟随系统语言，
+侧边栏底部可以随时切换（选择会记住，重启依然生效）。
+
+- 文案都在 `src/i18n/locales/*.json`，加语言只要 3 步
+- 后端（Rust）不返回拼好的句子，只返回**消息码 + 参数**，
+  所以切成英文后，报错信息和进度提示也是英文
+- 日期、数字、文件大小、软件名排序都跟着语言走
+- 改完跑 `pnpm i18n:check` 检查有没有漏翻
+
+完整开发说明见 [`docs/I18N.md`](docs/I18N.md)。
+
 ## 技术这块（感兴趣就看）
 
 - **Tauri 2 + Rust**：后端直接调 Win32 API，操作注册表、进程、文件系统都走原生
 - **React + Tailwind**：前端界面，组件化，暗色模式用 `dark:` 前缀就搞定了
+- **i18next + react-i18next**：语言包内联进 bundle，`initI18n()` 同步执行，首帧就是正确语言
 - **robocopy**：不是自己写文件复制，调系统自带的 robocopy（16 线程，保留权限/时间戳/ACL）
 - **FSCTL_SET_REPARSE_POINT**：Junction 的创建走的是这个原生 IOCTL，不是 mklink 命令，可控性强
 - **移动记录**：存在 JSON manifest 里，结构简单，删了也不影响已搬好的链接

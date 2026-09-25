@@ -113,11 +113,21 @@ pub struct KillFailure {
 }
 
 fn terminate(pid: u32) -> AppResult<()> {
-    let handle = unsafe { OpenProcess(PROCESS_TERMINATE, false, pid) }
-        .map_err(|e| AppError::Windows(format!("OpenProcess({pid}) 失败: {e}")))?;
+    let handle = unsafe { OpenProcess(PROCESS_TERMINATE, false, pid) }.map_err(|e| {
+        AppError::windows_code(
+            e.message().to_string(),
+            "openProcess",
+            serde_json::json!({ "pid": pid, "error": e.message().to_string() }),
+        )
+    })?;
     unsafe {
-        TerminateProcess(handle, 1)
-            .map_err(|e| AppError::Windows(format!("TerminateProcess({pid}) 失败: {e}")))?
+        TerminateProcess(handle, 1).map_err(|e| {
+            AppError::windows_code(
+                e.message().to_string(),
+                "terminateProcess",
+                serde_json::json!({ "pid": pid, "error": e.message().to_string() }),
+            )
+        })?
     };
     let _ = unsafe { CloseHandle(handle) };
     Ok(())

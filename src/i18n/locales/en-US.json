@@ -1,0 +1,238 @@
+{
+  "app": {
+    "title": "FolderMove-Plus",
+    "tagline": "App Relocator"
+  },
+  "nav": {
+    "apps": "Applications",
+    "moved": "Moved"
+  },
+  "page": {
+    "apps": {
+      "title": "Applications"
+    },
+    "moved": {
+      "title": "Moved"
+    }
+  },
+  "common": {
+    "cancel": "Cancel",
+    "next": "Next",
+    "back": "Back",
+    "retry": "Retry",
+    "create": "Create",
+    "loading": "Loading…",
+    "empty": "—"
+  },
+  "settings": {
+    "language": "Language",
+    "languageSystem": "Follow system"
+  },
+  "units": {
+    "B": "B",
+    "KB": "KB",
+    "MB": "MB",
+    "GB": "GB",
+    "TB": "TB",
+    "PB": "PB"
+  },
+  "sidebar": {
+    "noDrives": "No drives detected",
+    "drive": "Drive {{letter}}",
+    "freeOfTotal": "{{free}} free / {{total}} total",
+    "movedIn": "{{size}} moved in"
+  },
+  "list": {
+    "searchPlaceholder": "Search by app name, publisher or path…",
+    "filterByRisk": "Filter by risk level",
+    "riskAll": "All risk levels",
+    "riskLowOnly": "Low risk only",
+    "riskMediumOnly": "Medium risk only",
+    "riskHighOnly": "High risk only",
+    "sortBySize": "Sort by size",
+    "sortByName": "Sort by name",
+    "rescan": "Rescan",
+    "scanning": "Scanning…",
+    "count_one": "{{count}} app",
+    "count_other": "{{count}} apps",
+    "empty": "No matching apps",
+    "version": "v{{version}}",
+    "linked": "Linked",
+    "driveLabel": "Drive {{letter}}:",
+    "move": "Move",
+    "notMovable": "Not movable",
+    "notMovableFallback": "Not movable",
+    "risk": {
+      "high": "High risk",
+      "medium": "Medium risk",
+      "low": "Low risk"
+    },
+    "riskTip": {
+      "high": "High risk: moving this may affect system stability",
+      "medium": "Medium risk: close the app before moving",
+      "low": "Low risk: safe to move"
+    }
+  },
+  "moved": {
+    "emptyTitle": "No apps moved yet",
+    "emptyDesc": "Pick a target drive in “Applications” to move an app. Every move is recorded here and can be restored at any time.",
+    "summary_one": "{{count}} app moved · about {{size}} freed from C:",
+    "summary_other": "{{count}} apps moved · about {{size}} freed from C:",
+    "movedAt": "Moved on {{time}}",
+    "restore": "Restore",
+    "restoring": "Restoring",
+    "restoreTip": "Move the app back to its original location"
+  },
+  "dialog": {
+    "unknownPublisher": "Unknown publisher",
+    "pathOverview": "Migration path",
+    "appSize": "App size: ",
+    "computing": "Calculating",
+    "mode": "Mode: ",
+    "modeAdvanced": "Advanced (pick a folder)",
+    "modeDefault": "Default",
+    "step": {
+      "drive": "Drive",
+      "mode": "Mode",
+      "pickdir": "Folder",
+      "confirm": "Confirm"
+    },
+    "stepDriveTitle": "Step 1: choose the target drive",
+    "stepDriveEmpty": "No other fixed drive was detected. Please connect the target disk first.",
+    "driveFree": "{{size}} free",
+    "stepModeTitle": "Step 2: choose how to move",
+    "modeDefaultName": "Default",
+    "modeDefaultDesc": "Creates a FolderMove-Plus folder at the root of the target drive and moves the app into it. One step, good enough for 99% of cases.",
+    "modeAdvancedName": "Advanced",
+    "modeAdvancedDesc": "Opens the built-in file manager so you can pick the exact destination folder. Supports creating and renaming folders for fine-grained organisation.",
+    "stepPickdirTitle": "Step 3: choose the destination folder",
+    "pickdirHint": "{{name}} will be created inside the selected folder",
+    "goUp": "Up one level",
+    "newFolder": "New folder",
+    "loadError": "Cannot read this folder: ",
+    "noSubfolders": "This folder has no subfolders",
+    "noSubfoldersHint": "You can use the current folder as the destination, or click “New folder” above",
+    "selected": "Selected",
+    "rename": "Rename",
+    "openFolder": "Open folder",
+    "highRiskTitle": "High risk warning: ",
+    "highRiskFallback": "This path is part of the system, moving it may break Windows or the app.",
+    "highRiskSuffix": "Create a restore point and fully close the related apps first.",
+    "spaceEnough": "Enough space. Moving this is expected to free {{size}}",
+    "spaceNotEnough": "Not enough free space on the target drive ({{free}} < {{size}})",
+    "checkingProcs": "Checking for leftover processes…",
+    "killingProcs": "Terminating leftover processes…",
+    "procsFound_one": "{{count}} leftover process is still using this folder",
+    "procsFound_other": "{{count}} leftover processes are still using this folder",
+    "procsFoundHint": "If you have already closed the app, these may be processes that did not exit cleanly.",
+    "procsKillFailed": "Could not terminate: ",
+    "procsKillAndContinue": "Terminate and continue",
+    "procsRecheck": "Check again",
+    "procsNone": "No leftover process found, safe to move",
+    "procsPendingTip": "Handle the leftover processes first",
+    "startMove": "Start moving",
+    "openFileManager": "Open file manager",
+    "processing": {
+      "checking": "Checking",
+      "killing": "Terminating",
+      "moving": "Moving"
+    }
+  },
+  "progress": {
+    "done": "Finished",
+    "doneHint": "You can now work on other apps",
+    "runningHint": "Do not close the app or cut the power",
+    "fallbackPhase": "Working",
+    "phase": {
+      "computing": "Measuring size",
+      "copying": "Copying files",
+      "verifying": "Verifying",
+      "linking": "Creating link",
+      "cleaning": "Cleaning up",
+      "done": "Done"
+    }
+  },
+  "toast": {
+    "scanFailed": "Scan failed: {{error}}",
+    "moved": "Moved “{{name}}”, freed {{size}}",
+    "restored": "Restored “{{name}}”",
+    "procCheckFailed": "Process check failed: {{error}}",
+    "procKillFailed": "Failed to terminate processes: {{error}}",
+    "procKillPartial": "Some processes could not be terminated: {{list}}",
+    "procEntry": "PID {{pid}} ({{reason}})",
+    "procEntrySeparator": ", ",
+    "pidListSeparator": ", "
+  },
+  "error": {
+    "pathNotFound": "Path does not exist: {{path}}",
+    "pathEmpty": "Path is empty",
+    "pathNotAbsolute": "Path is not absolute: {{path}}",
+    "sourceDriveUnknown": "Cannot determine the source drive",
+    "targetDriveUnknown": "Cannot determine the target drive",
+    "sameDrive": "Source and target are on the same drive, nothing to move",
+    "insufficientSpace": "Not enough free space on the target drive: {{needed}} bytes needed, {{available}} bytes available",
+    "alreadyLinked": "The source folder is already a link and cannot be moved again: {{path}}",
+    "copyFailed": "Copy failed (robocopy exit code {{code}})",
+    "copyFailedDetail": {
+      "robocopySpawn": "Failed to start robocopy: {{error}}",
+      "robocopyExitCode": "robocopy exit code {{code}} (≥8 means some files failed — they may be in use, close the app first)",
+      "robocopyWait": "Failed while waiting for robocopy: {{error}}"
+    },
+    "verifyFailed": "Copy finished but verification failed: target is {{size}} bytes, source is about {{expected}} bytes — the copy is incomplete",
+    "renameFailed": "Failed to rename the source folder; the app may be running or files are in use: {{detail}}",
+    "linkFailed": "Failed to create the link: {{detail}}",
+    "linkDetail": {
+      "createDir": "Failed to create directory: {{error}}",
+      "openDir": "Failed to open directory: {{error}}",
+      "setReparsePoint": "FSCTL_SET_REPARSE_POINT failed: {{error}}",
+      "removeDir": "RemoveDirectoryW failed: {{error}}",
+      "renameLink": "Failed to rename the link: {{error}}",
+      "verifyFailed": "Junction verification failed"
+    },
+    "recordNotFound": "No move record found with id {{id}}",
+    "restoreNotLink": "Original path {{path}} is not a link — it may have been changed manually, so it cannot be restored automatically",
+    "targetEmpty": "The copy at {{path}} is empty, so the restore was cancelled to avoid wiping the app. Check that folder, or copy the files back manually.",
+    "cleanupFailed": "Restore finished, but the copy at {{path}} could not be deleted ({{detail}}). Something is probably holding the folder open — close File Explorer or your antivirus and delete it manually.",
+    "windows": "Windows API call failed: {{detail}}",
+    "windowsDetail": {
+      "openProcess": "OpenProcess({{pid}}) failed: {{error}}",
+      "terminateProcess": "TerminateProcess({{pid}}) failed: {{error}}"
+    },
+    "io": "IO error: {{detail}}",
+    "json": "JSON serialization error: {{detail}}",
+    "other": "{{detail}}",
+    "localAppDataMissing": "Cannot read the LOCALAPPDATA environment variable",
+    "pathMustBeAbsolute": "The path must be absolute: {{path}}",
+    "parentMustBeAbsolute": "The parent folder must be an absolute path: {{path}}",
+    "oldPathMustBeAbsolute": "The original path must be absolute: {{path}}",
+    "notAFolder": "Not a folder: {{path}}",
+    "noParentDir": "Invalid path (no parent folder): {{path}}",
+    "folderNameEmpty": "Folder name cannot be empty",
+    "newFolderNameEmpty": "New folder name cannot be empty",
+    "folderExists": "Folder already exists: {{path}}",
+    "folderNameExists": "A folder with the same name already exists: {{path}}"
+  },
+  "reason": {
+    "dirMissing": "Folder does not exist or is not accessible",
+    "dirInaccessible": "Folder is not accessible",
+    "alreadyLinked": "This folder is already a link and may have been moved before",
+    "alreadyJunction": "Already a junction link, no need to move it again",
+    "systemCritical": "Critical system folder — moving it may affect system stability, please be careful",
+    "driverOrRuntime": "Driver or runtime library that other software depends on — moving it may break those apps",
+    "systemInstallDir": "Located in a system-level install folder; moving requires administrator rights, close the app first",
+    "userDir": "Located in a user folder, low risk to move",
+    "normalDir": "Regular install folder"
+  },
+  "progressMessage": {
+    "computingSize": "Measuring the size…",
+    "copyingTo": "Copying to {{path}}",
+    "copying": "Copying…",
+    "copyingVerify": "Copy finished, verifying…",
+    "linking": "Creating the link…",
+    "cleaningOriginal": "Removing the original files…",
+    "done": "Done",
+    "restoringTo": "Moving back to {{path}}",
+    "cleaningTarget": "Cleaning up the copy on the target drive…",
+    "restoreDone": "Restore complete"
+  }
+}

@@ -3,7 +3,7 @@
 //! 这些操作主要提供给前端内嵌的"文件管理器"组件使用，
 //! 让用户在高级模式下手动选择迁移后存放的目录。
 
-use crate::error::{AppError, AppResult};
+use crate::error::{AppResult, FsError};
 use std::path::{Path, PathBuf};
 
 /// 单个文件夹条目
@@ -25,7 +25,7 @@ pub fn list_subfolders(dir: &str) -> AppResult<Vec<FolderEntry>> {
     let base = Path::new(dir);
     // 要求输入路径必须是绝对路径且存在
     if !base.is_absolute() {
-        return Err(format!("路径必须为绝对路径：{dir}").into());
+        return Err(FsError::PathMustBeAbsolute(dir.to_string()).into());
     }
     let mut out: Vec<FolderEntry> = Vec::new();
 
@@ -96,16 +96,16 @@ pub fn list_subfolders(dir: &str) -> AppResult<Vec<FolderEntry>> {
 pub fn create_folder(parent: &str, name: &str) -> AppResult<String> {
     let parent = Path::new(parent);
     if !parent.is_absolute() {
-        return Err(format!("父目录必须为绝对路径：{parent:?}").into());
+        return Err(FsError::ParentMustBeAbsolute(parent.to_string_lossy().to_string()).into());
     }
     // Windows 非法文件名字符过滤
     let cleaned = clean_folder_name(name);
     if cleaned.is_empty() {
-        return Err(AppError::from("文件夹名不能为空".to_string()));
+        return Err(FsError::FolderNameEmpty.into());
     }
     let target = parent.join(&cleaned);
     if target.exists() {
-        return Err(format!("文件夹已存在：{}", target.display()).into());
+        return Err(FsError::FolderExists(target.display().to_string()).into());
     }
     std::fs::create_dir(&target)?;
     Ok(target.to_string_lossy().to_string())
@@ -115,21 +115,21 @@ pub fn create_folder(parent: &str, name: &str) -> AppResult<String> {
 pub fn rename_folder(old_path: &str, new_name: &str) -> AppResult<String> {
     let old = PathBuf::from(old_path);
     if !old.is_absolute() {
-        return Err(format!("原路径必须为绝对路径：{old_path}").into());
+        return Err(FsError::OldPathMustBeAbsolute(old_path.to_string()).into());
     }
     if !old.is_dir() {
-        return Err(format!("不是文件夹：{}", old.display()).into());
+        return Err(FsError::NotAFolder(old.display().to_string()).into());
     }
     let parent = old
         .parent()
-        .ok_or_else(|| format!("非法路径（无父目录）：{}", old.display()))?;
+        .ok_or_else(|| FsError::NoParentDir(old.display().to_string()))?;
     let cleaned = clean_folder_name(new_name);
     if cleaned.is_empty() {
-        return Err(AppError::from("新文件夹名不能为空".to_string()));
+        return Err(FsError::NewFolderNameEmpty.into());
     }
     let new_path = parent.join(&cleaned);
     if new_path.exists() {
-        return Err(format!("同名文件夹已存在：{}", new_path.display()).into());
+        return Err(FsError::FolderNameExists(new_path.display().to_string()).into());
     }
     std::fs::rename(&old, &new_path)?;
     Ok(new_path.to_string_lossy().to_string())
