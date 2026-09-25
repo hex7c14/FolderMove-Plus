@@ -9,7 +9,10 @@ pnpm-debug.log*
 
 # ===== Rust / Tauri =====
 src-tauri/target/
-src-tauri/gen/schemas/   # Tauri 自动生成的 schema，本地构建会重新生成
+# Tauri 自动生成的 schema，本地构建会重新生成。
+# 注意：.gitignore 不支持行尾注释 —— 写成 `pattern  # 说明` 会让整行
+# 变成一个永远匹配不到的 pattern，规则静默失效。
+src-tauri/gen/schemas/
 
 # ===== 编辑器 / IDE =====
 .vscode/
